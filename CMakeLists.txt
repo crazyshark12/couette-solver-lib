@@ -10,11 +10,13 @@ set(HDR_FOLDER "${PROJECT_SOURCE_DIR}/hdr")
 
 set(${PROJECT_NAME}_SRC  ${SRC_FOLDER}/AbstractSolver.cpp
                          ${SRC_FOLDER}/AdditionalSolver.cpp
+                         ${SRC_FOLDER}/Mixture.cpp
 )
 
 set(${PROJECT_NAME}_HDR  ${HDR_FOLDER}/AbstractSolver.h
                          ${HDR_FOLDER}/AdditionalSolver.h
-                         ${HDR_FOLDER}/global.h                         
+                         ${HDR_FOLDER}/global.h    
+			 ${HDR_FOLDER}/Mixture.h                     
 )
 
 add_subdirectory(example)

@@ -2,57 +2,53 @@
 
 #include "abstractsolver.h"
 
-//void AbstaractSolver::prepareSolving()
-//{
-//    U1.resize(solParam.NumCell+2);
-//    U2.resize(solParam.NumCell+2);
-//    U3.resize(solParam.NumCell+2);
-//    U4.resize(solParam.NumCell+2);
-//    R.resize(solParam.NumCell+2);
+void AbstaractSolver::setMixture(Mixture mixture_)
+{
+    mixture =  mixture_;
+}
 
-//    leftParam.density = leftParam.pressure /(UniversalGasConstant/molMass * leftParam.temp);
-//    double Z = additionalSolver.ZCO2Vibr(leftParam.temp);
-//    double Cv = 5.0/2 * kB/mass+ additionalSolver.CVibr(leftParam.temp,Z);
-//    solParam.Gamma = (UniversalGasConstant/molMass + Cv)/Cv;
-//    leftParam.soundSpeed = sqrt(solParam.Gamma *UniversalGasConstant/molMass * leftParam.temp);
-//    leftParam.velocity = solParam.Ma*leftParam.soundSpeed;
-//    leftParam.tempIntr = leftParam.temp;
-//    QFile pythonFile(QDir::currentPath() + "\\Fun.py");
-//    if( !pythonFile.open(QFile::ReadOnly) )
-//    {
-//        QMessageBox msgBox;
-//        msgBox.setWindowTitle("Ошибка");
-//        msgBox.setText("Нет файла с питоновским расчетом граничных значений");
-//        msgBox.exec();
-//        breaksolve = true;
-//        return;
-//    }
-//    rightParam = additionalSolver.bondaryConditionPython(leftParam, solParam);
-//    double leftEvibr = additionalSolver.vibrEnergy(0,leftParam.temp);
-//    double leftFullEnergy = 5.0/2*kB*leftParam.temp/mass + leftEvibr;
-//    double rightEVibr = additionalSolver.vibrEnergy(0,rightParam.temp);
-//    double rightFullEnergy = 5.0/2*kB*rightParam.temp/mass + rightEVibr;
+void AbstaractSolver::prepareSolving()
+{
 
-//    for(auto i  = 1; i < solParam.NumCell+1; i++)
-//    {
-//        if(i < solParam.NumCell/3 +1)
-//        {
-//            U1[i] = leftParam.density;
-//            U2[i] = leftParam.density*leftParam.velocity;
-//            U3[i] = leftParam.density*(leftFullEnergy + pow(leftParam.velocity,2)/2);
-//            U4[i] = leftParam.density*leftEvibr;
-//        }
+    U_velocity.resize(solParam.NumCell+2);
+    U_energy.resize(solParam.NumCell+2);
+    U_density.resize(mixture.NumberOfComponents);
+    for(size_t i = 0 ; i <  U_density.size(); i++)
+        U_density[i].resize(solParam.NumCell+2);
 
-//        else
-//        {
-//            U1[i] = rightParam.density;
-//            U2[i] = rightParam.density*rightParam.velocity;
-//            U3[i] = rightParam.density*(rightFullEnergy + pow(rightParam.velocity,2)/2);
-//            U4[i] = rightParam.density*rightEVibr;
-//        }
-//    }
-//    prepareVectors();
-//}
+//  ???  как мы устанавливаем эти параметры ???
+    leftParam.density = leftParam.pressure /(UniversalGasConstant/molMass * leftParam.temp);
+    leftParam.soundSpeed = sqrt(solParam.Gamma*leftParam.pressure/leftParam.density);
+    leftParam.velocity = solParam.Ma*leftParam.soundSpeed;
+
+    rightParam.density = ((solParam.Gamma + 1)* pow(solParam.Ma,2))/(2 + (solParam.Gamma -1)* pow(solParam.Ma,2))*leftParam.density;
+    rightParam.pressure = (pow(solParam.Ma,2) * 2* solParam.Gamma - (solParam.Gamma - 1))/((solParam.Gamma +1))*leftParam.pressure;
+    rightParam.temp = rightParam.pressure/(rightParam.density*UniversalGasConstant/molMass);
+auto g = solParam.Gamma;
+auto m = solParam.Ma;
+    auto temp2 = (2*g*m*m/(g+1) - (g-1)/(g+1))/((g+1)* m*m/(2 + (g-1)*m*m));
+
+    //rightParam = additionalSolver.BoundaryCondition[typeBC](leftParam, solParam);
+    rightParam.velocity = leftParam.density*leftParam.velocity/rightParam.density;
+
+    for(auto i  = 1; i < solParam.NumCell+1; i++)
+    {
+        if(i < solParam.NumCell/2+1)
+        {
+            U1[i] = leftParam.density;
+            U2[i] = leftParam.density*leftParam.velocity;
+            U3[i] = leftParam.pressure/(solParam.Gamma-1)+0.5*pow(leftParam.velocity,2)*leftParam.density;
+        }
+
+        else
+        {
+            U1[i] = rightParam.density;
+            U2[i] = rightParam.density*rightParam.velocity;
+            U3[i] = rightParam.pressure/(solParam.Gamma-1)+0.5*pow(rightParam.velocity,2)*rightParam.density;
+        }
+    }
+    prepareVectors();
+}
 
 void AbstaractSolver::calcRiemanPStar()
 {

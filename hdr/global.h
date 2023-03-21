@@ -46,7 +46,6 @@ struct macroParam
     double temp         = 0;
     double tempIntr     = 0;
     double soundSpeed   = 0;
-    bool isLeftContact = false;
     string gas         ="CO2";
 };
 struct solverParams

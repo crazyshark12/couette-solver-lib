@@ -8,58 +8,6 @@
 struct AdditionalSolver
 {
 public:
-    enum Function
-    {
-        SHARE_VISC_SUPER_SIMPLE = 0,
-        SHARE_VISC_SIMPLE,
-        SHARE_VISC_OMEGA,
-        BULC_VISC_SIMPLE,
-        BULC_VISC_OLD,
-        BULC_VISC_NEW,
-        VIBR_ENERGY,
-        ALL_ENERGY,
-        C_VIBR,
-        LAMBDA_TR,
-        LAMBDA_VIBR,
-        Z_VIBR,
-        EVIBR12,
-        EVIBR3,
-        LAMBDA12,
-        LAMBDA3,
-        C_TR,
-        C_ROT,
-        LAMBDA_N2,
-        FUNCTION_COUNT
-    };
-    enum BoundaryConditions
-    {
-        BC_RG,
-        BC_RG2T,
-        BC_PYTHON,
-        BC_COUNT
-    };
-    enum TimeStepSolver
-    {
-        TS_SIMPLE,
-        TS_FULL,
-        TS_COUNT
-    };
-    enum ShareViscosity
-    {
-        SV_SS,
-        SV_S,
-        SV_O,
-        SV_COUNT
-    };
-
-    enum BulkViscosity
-    {
-        BV_S,
-        BV_OLD,
-        BV_WITHOUT,
-        BV_ONLY_RT_ROT,
-        BV_COUNT
-    };
 
     void solve();
     double startValue;
@@ -68,7 +16,6 @@ public:
     double pressure = 0;
     double density = 0;
     double gamma = 0;
-    Function typeSolve;
     vector <double> iterationVector;
     vector <double> rezultVector;
 
