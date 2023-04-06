@@ -16,7 +16,7 @@ set(${PROJECT_NAME}_SRC  ${SRC_FOLDER}/AbstractSolver.cpp
 set(${PROJECT_NAME}_HDR  ${HDR_FOLDER}/AbstractSolver.h
                          ${HDR_FOLDER}/AdditionalSolver.h
                          ${HDR_FOLDER}/global.h    
-			 ${HDR_FOLDER}/Mixture.h                     
+			 ${HDR_FOLDER}/Mixture.h                  
 )
 
 add_subdirectory(example)
