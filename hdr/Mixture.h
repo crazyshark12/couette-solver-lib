@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 
-struct Component
+struct MixtureComponent
 {
     double density;                 //плотность компоненты
     //... какие-то другие параметры компонент
@@ -12,9 +12,9 @@ struct Component
 };
 struct Mixture
 {
-    Mixture(std::vector<Component> components_);
+    Mixture(std::vector<MixtureComponent> components_);
 
-    std::vector<Component> components;
+    std::vector<MixtureComponent> components;
     int NumberOfComponents;
     //... какие-то другие параметры смеси
     //пример

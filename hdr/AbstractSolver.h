@@ -44,6 +44,9 @@ protected:
     Matrix  F2, F3;
     vector<Matrix> F1;
 
+//    //скорость звука в каждой ячейке
+//    Matrix sound_speed;
+
     double delta_h;                 // шаг сетки
     Matrix timeSolvind;             // вектор в котором хранятся временные шаги
 
