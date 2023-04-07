@@ -18,41 +18,31 @@ void AbstaractSolver::prepareSolving()
     U1.resize(mixture.NumberOfComponents);
     for(size_t i = 0 ; i <  U1.size(); i++)
         U1[i].resize(solParam.NumCell+2);
+    points.resize(solParam.NumCell+2, macroParam(mixture));
 
+    for(size_t i = 0; i < points.size(); i++)
+    {
+        points[i].pressure = startParam.pressure;
+        points[i].temp = startParam.temp;
+        points[i].density = startParam.pressure /(UniversalGasConstant/molMass * startParam.temp);
+        points[i].soundSpeed = sqrt(solParam.Gamma*startParam.pressure/startParam.density);
+        points[i].velocity = solParam.Ma*startParam.soundSpeed;
+        points[i].fractionArray =  startParam.fractionArray;
+        for(size_t j = 0; j < mixture.NumberOfComponents; j++)
+        {
+            points[i].densityArray[j] = startParam.fractionArray[j] *  points[i].density;
+        }
+    }
 
-//    ???  как мы устанавливаем эти параметры ??? (взял из argonSolver)
-//    upParam.density = upParam.pressure /(UniversalGasConstant/molMass * upParam.temp);
-//    upParam.soundSpeed = sqrt(solParam.Gamma*upParam.pressure/upParam.density);
-//    upParam.velocity = solParam.Ma*upParam.soundSpeed;
-
-//    downParam.density = ((solParam.Gamma + 1)* pow(solParam.Ma,2))/(2 + (solParam.Gamma -1)* pow(solParam.Ma,2))*upParam.density;
-//    downParam.pressure = (pow(solParam.Ma,2) * 2* solParam.Gamma - (solParam.Gamma - 1))/((solParam.Gamma +1))*upParam.pressure;
-//    downParam.temp = downParam.pressure/(downParam.density*UniversalGasConstant/molMass);
-//    auto g = solParam.Gamma;
-//    auto m = solParam.Ma;
-//    auto temp2 = (2*g*m*m/(g+1) - (g-1)/(g+1))/((g+1)* m*m/(2 + (g-1)*m*m));
-
-//    //downParam.velocity = downParam.density*downParam.velocity/upParam.density;
+    //downParam.velocity = downParam.density*downParam.velocity/upParam.density;
 
     for(auto i  = 1; i < solParam.NumCell+1; i++)
     {
-        if(i < solParam.NumCell/2+1)
-        {
-            U1[0][i] = upParam.density;
-            for(size_t j = 1; j < mixture.NumberOfComponents; j++)
-                U1[j][i] = upParam.density * upParam.massFraction[j];
-            U2[i] = upParam.density*upParam.velocity;
-            U3[i] = upParam.pressure/(solParam.Gamma-1)+0.5*pow(upParam.velocity,2)*upParam.density; // скорее всего иначе
-        }
-
-        else
-        {
-            U1[0][i] = downParam.density;
-            for(size_t j = 1; j < mixture.NumberOfComponents; j++)
-                U1[j][i] = downParam.density * downParam.massFraction[j];
-            U2[i] = downParam.density*downParam.velocity;
-            U3[i] = downParam.pressure/(solParam.Gamma-1)+0.5*pow(downParam.velocity,2)*downParam.density; // скорее всего иначе
-        }
+        U1[0][i] = startParam.density;
+        for(size_t j = j; j < mixture.NumberOfComponents; j++)
+            U1[j][i] = startParam.densityArray[j] ;
+        U2[i] = startParam.density*startParam.velocity;
+        U3[i] = startParam.pressure/(solParam.Gamma-1)+0.5*pow(startParam.velocity,2)*startParam.density; // скорее всего иначе
     }
     prepareVectors();
 }
@@ -71,6 +61,24 @@ void AbstaractSolver::setDt()
     timeSolvind.push_back(dt);
     return;
 }
+
+void AbstaractSolver::updatePoints()
+{
+    for(size_t i = 0; i < points.size(); i++)
+    {
+        points[i].velocity = U2[i]/U1[0][i];
+        points[i].pressure = (U3[i] - pow(points[i].velocity,2)*0.5*U1[i][0])*(solParam.Gamma - 1);
+        points[i].density = U1[0][i];
+        for(size_t j = 0; j < mixture.NumberOfComponents; j++)
+        {
+            points[i].densityArray[j] =  U1[j][i];
+            points[i].fractionArray[j] = points[i].densityArray[j] / points[i].density;
+        }
+        points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
+        // тут ещё должна находиться температура
+    }
+    return;
+}
 void AbstaractSolver::  prepareVectors() // подготовка размеров нужных векторов и то как будут задаваться условия в крайних ячейках
 {
     for(size_t j = 0; j < mixture.NumberOfComponents; j++)
@@ -84,8 +92,13 @@ void AbstaractSolver::  prepareVectors() // подготовка размеро�
     U2[solParam.NumCell+1]=U2[solParam.NumCell];
     U3[solParam.NumCell+1]=U3[solParam.NumCell];
 
+    F1.resize(mixture.NumberOfComponents);
+    for(size_t j = 0; j < mixture.NumberOfComponents; j++)
+        F1[j].resize(solParam.NumCell+1);
+    F2.resize(solParam.NumCell+1);
+    F3.resize(solParam.NumCell+1);
+    R.resize(solParam.NumCell+2);
     T.resize(solParam.NumCell +2);
-
     timeSolvind.push_back(0);
 }
 

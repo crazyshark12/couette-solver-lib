@@ -9,6 +9,7 @@ struct HLLCSolver: public AbstaractSolver
     Matrix  hllcF2, hllcF3;
     vector<Matrix> hllcF1;
 
+    vector<macroParam> points;
 protected:
 
     // Расчет вектора потоков во всех ячейках
@@ -22,4 +23,10 @@ protected:
 
     // обновляет вектор U
     void updateU();
+
+    // обновлеяет вектор макропараметров с помощью U
+    void updatePoints();
+
+    //вычисляет температуру в i-ой ячейке
+    void computeT(macroParam &p, size_t i);
 };

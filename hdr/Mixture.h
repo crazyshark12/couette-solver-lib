@@ -5,6 +5,7 @@
 struct MixtureComponent
 {
     double density;                 //плотность компоненты
+    double molarMass; // молярная масса
     //... какие-то другие параметры компонент
     std::string name;                    //название компоненты
 
@@ -18,5 +19,8 @@ struct Mixture
     int NumberOfComponents;
     //... какие-то другие параметры смеси
     //пример
+
+    double molarMass();
+    double molarMass(size_t i);
     double **coeffDiffusion;            //коэффициенты диффузии
 };

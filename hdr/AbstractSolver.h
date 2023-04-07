@@ -18,10 +18,10 @@ public:
 
     // можно сказать что это начальные данные + ещё нужно как-то описать граничные условия
     Mixture mixture;
-    macroParam upParam;
-    macroParam downParam;
+    macroParam startParam;
     solverParams solParam;
 
+    int numberOfComponents;
 protected:
 
     virtual void prepareSolving();
@@ -36,6 +36,8 @@ protected:
     // устанавливает временной шаг
     void setDt();
 
+    virtual void updatePoints();
+
     //надо придумать название получше
     Matrix U2, U3, pres, T;
     vector<Matrix> U1, R;        //U1[i] = i-ая компонента
@@ -43,6 +45,9 @@ protected:
     //надо придумать название получше
     Matrix  F2, F3;
     vector<Matrix> F1;
+
+    // хранит значение макропараметров в каждой ячейке
+    vector<macroParam> points;
 
 //    //скорость звука в каждой ячейке
 //    Matrix sound_speed;
