@@ -38,7 +38,7 @@ protected:
 
     //надо придумать название получше
     Matrix U2, U3, pres, T;
-    vector<Matrix> U1, R;        //U_density[i] = i-ая компонента
+    vector<Matrix> U1, R;        //U1[i] = i-ая компонента
 
     //надо придумать название получше
     Matrix  F2, F3;
