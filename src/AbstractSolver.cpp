@@ -18,16 +18,17 @@ void AbstaractSolver::prepareSolving()
     U1.resize(mixture.NumberOfComponents);
     for(size_t i = 0 ; i <  U1.size(); i++)
         U1[i].resize(solParam.NumCell+2);
-    points.resize(solParam.NumCell+2, macroParam(mixture));
+    points.resize(solParam.NumCell+2);
 
     for(size_t i = 0; i < points.size(); i++)
     {
         points[i].pressure = startParam.pressure;
         points[i].temp = startParam.temp;
-        points[i].density = startParam.pressure /(UniversalGasConstant/molMass * startParam.temp);
-        points[i].soundSpeed = sqrt(solParam.Gamma*startParam.pressure/startParam.density);
+        points[i].density = startParam.pressure /(UniversalGasConstant/mixture.molarMass() * startParam.temp);
+        points[i].soundSpeed = sqrt(solParam.Gamma*startParam.pressure/points[i].density);
         points[i].velocity = solParam.Ma*startParam.soundSpeed;
         points[i].fractionArray =  startParam.fractionArray;
+        points[i].densityArray =  startParam.densityArray;
         for(size_t j = 0; j < mixture.NumberOfComponents; j++)
         {
             points[i].densityArray[j] = startParam.fractionArray[j] *  points[i].density;
@@ -98,7 +99,7 @@ void AbstaractSolver::  prepareVectors() // подготовка размеро�
     F2.resize(solParam.NumCell+1);
     F3.resize(solParam.NumCell+1);
     R.resize(solParam.NumCell+2);
-    T.resize(solParam.NumCell +2);
+    //T.resize(solParam.NumCell +2);
     timeSolvind.push_back(0);
 }
 

@@ -41,6 +41,7 @@ extern double molMass;
 extern double mass;
 struct macroParam
 {
+    macroParam(){mixture = Mixture();}
     macroParam(Mixture mix):mixture(mix){fractionArray.resize(mix.NumberOfComponents); densityArray.resize(mix.NumberOfComponents);}
     Mixture mixture;
     vector<double> densityArray;

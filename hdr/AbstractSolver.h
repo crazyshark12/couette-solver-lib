@@ -5,33 +5,25 @@
 #include <mutex>
 
 #include "global.h"
-#include "additionalsolver.h"
 #include "Mixture.h"
 
 struct AbstaractSolver
 {
 public:
     void setMixture(Mixture mixture_);
-
     virtual void solve() = 0;
-
 
     // можно сказать что это начальные данные + ещё нужно как-то описать граничные условия
     Mixture mixture;
     macroParam startParam;
     solverParams solParam;
-
-    int numberOfComponents;
 protected:
 
     virtual void prepareSolving();
     void prepareVectors();
 
-    // запускает рассчет вектора потоков
-    virtual void solveFlux() = 0;
-
-    // обновляет вектор U
-    virtual void updateU();
+//    // обновляет вектор U
+//    virtual void updateU();
 
     // устанавливает временной шаг
     void setDt();
@@ -39,7 +31,7 @@ protected:
     virtual void updatePoints();
 
     //надо придумать название получше
-    Matrix U2, U3, pres, T;
+    Matrix U2, U3;
     vector<Matrix> U1, R;        //U1[i] = i-ая компонента
 
     //надо придумать название получше
@@ -54,7 +46,4 @@ protected:
 
     double delta_h;                 // шаг сетки
     Matrix timeSolvind;             // вектор в котором хранятся временные шаги
-
-
-
 };

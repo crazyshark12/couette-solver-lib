@@ -31,6 +31,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE -D_USE_MATH_DEFINES)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES DEBUG_POSTFIX "d")
 
+
 target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/hdr>"
                                                   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 

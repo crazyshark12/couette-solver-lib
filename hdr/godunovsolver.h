@@ -1,7 +1,7 @@
 #pragma once
 
 #include "abstractsolver.h"
-
+#include "additionalsolver.h"
 struct GodunovSolver: public AbstaractSolver
 {
 

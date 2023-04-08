@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _MIXTURE
+#define _MIXTURE
 #include <vector>
 #include <string>
 
@@ -9,10 +10,10 @@ struct MixtureComponent
     //... какие-то другие параметры компонент
     std::string name;                    //название компоненты
 
-    double getEntalp(double T); // пример получения некоторых параметров
 };
 struct Mixture
 {
+    Mixture(){NumberOfComponents = 0;};
     Mixture(std::vector<MixtureComponent> components_);
 
     std::vector<MixtureComponent> components;
@@ -22,5 +23,7 @@ struct Mixture
 
     double molarMass();
     double molarMass(size_t i);
-    double **coeffDiffusion;            //коэффициенты диффузии
+    double getEffDiff(size_t i); // пока временное решение
+    double getEntalp(size_t i);
 };
+#endif

@@ -18,3 +18,13 @@ double Mixture::molarMass(size_t i)
 {
     return components[i].molarMass;
 }
+
+double Mixture::getEffDiff(size_t j)
+{
+    return 0;
+}
+
+double Mixture::getEntalp(size_t i)
+{
+    return 0;
+}

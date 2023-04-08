@@ -68,7 +68,7 @@ void GodunovSolver::calcFliux(vector<Matrix> density_, Matrix velocity_ , Matrix
         double tempD = pressure_[i]/(density_[0][i]*UniversalGasConstant/molMass);
         auto du_dx = (velocity_[i] - velocity_[i+1])/delta_h;
         double Tx = point.pressure/(point.density*UniversalGasConstant/molMass);
-        T[i] = Tx;
+        //T[i] = Tx;
         double Pr = 2.0/3;
         double etta /*= additionalSolver.shareViscosity[0](upParam.temp, Tx,0,0);*/; //тут надо добавить рассчёт вязкости
         double G =  (4.0/3*etta)*du_dx;

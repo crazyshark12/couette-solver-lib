@@ -4,14 +4,16 @@
 
 struct HLLCSolver: public AbstaractSolver
 {
+    HLLCSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_);
     void solve();
     // Значения потока на границах ячеек по методу HLLC
     Matrix  hllcF2, hllcF3;
     vector<Matrix> hllcF1;
 
-    vector<macroParam> points;
-protected:
+    void setStartCondition(macroParam start);
 
+protected:
+    void prepareSolving();
     // Расчет вектора потоков во всех ячейках
     void computeF();
 
