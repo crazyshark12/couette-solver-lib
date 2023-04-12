@@ -6,24 +6,25 @@
 
 #include "global.h"
 #include "Mixture.h"
+#include "coeffsolver.h"
+#include "BorderCondition.h"
 
 struct AbstaractSolver
 {
 public:
     void setMixture(Mixture mixture_);
     virtual void solve() = 0;
-
+    void setDelta_h(double dh);
     // можно сказать что это начальные данные + ещё нужно как-то описать граничные условия
     Mixture mixture;
     macroParam startParam;
     solverParams solParam;
+    CoeffSolver coeffSolver;
+    BorderCondition border;
 protected:
 
     virtual void prepareSolving();
     void prepareVectors();
-
-//    // обновляет вектор U
-//    virtual void updateU();
 
     // устанавливает временной шаг
     void setDt();

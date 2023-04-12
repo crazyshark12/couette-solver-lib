@@ -7,18 +7,20 @@ void AbstaractSolver::setMixture(Mixture mixture_)
     mixture =  mixture_;
 }
 
-// тут нужно задавать с помощью заранее заданных данных (давление и температуры по идее) задавать upParam и
-// downParam и с помощью них заполнить две большие группы ячеек: которые примыкают к верхней пластине
-// и которые примыкают к нижней ( разделение где-то посередине )
+void AbstaractSolver::setDelta_h(double dh)
+{
+    delta_h = dh;
+}
+
 void AbstaractSolver::prepareSolving()
 {
 
-    U2.resize(solParam.NumCell+2);
-    U3.resize(solParam.NumCell+2);
+    U2.resize(solParam.NumCell);
+    U3.resize(solParam.NumCell);
     U1.resize(mixture.NumberOfComponents);
     for(size_t i = 0 ; i <  U1.size(); i++)
-        U1[i].resize(solParam.NumCell+2);
-    points.resize(solParam.NumCell+2);
+        U1[i].resize(solParam.NumCell);
+    points.resize(solParam.NumCell);
 
     for(size_t i = 0; i < points.size(); i++)
     {
@@ -37,7 +39,7 @@ void AbstaractSolver::prepareSolving()
 
     //downParam.velocity = downParam.density*downParam.velocity/upParam.density;
 
-    for(auto i  = 1; i < solParam.NumCell+1; i++)
+    for(auto i  = 1; i < solParam.NumCell-1; i++)
     {
         U1[0][i] = startParam.density;
         for(size_t j = j; j < mixture.NumberOfComponents; j++)
@@ -85,20 +87,20 @@ void AbstaractSolver::  prepareVectors() // подготовка размеро�
     for(size_t j = 0; j < mixture.NumberOfComponents; j++)
     {
         U1[j][0] = U1[j][1];
-        U1[j][solParam.NumCell+1] = U1[j][solParam.NumCell];
+        U1[j][solParam.NumCell-2] = U1[j][solParam.NumCell-1];
     }
     U2[0]=U2[1];
     U3[0]=U3[1];
 
-    U2[solParam.NumCell+1]=U2[solParam.NumCell];
-    U3[solParam.NumCell+1]=U3[solParam.NumCell];
+    U2[solParam.NumCell-2]=U2[solParam.NumCell-1];
+    U3[solParam.NumCell-2]=U3[solParam.NumCell-1];
 
     F1.resize(mixture.NumberOfComponents);
     for(size_t j = 0; j < mixture.NumberOfComponents; j++)
-        F1[j].resize(solParam.NumCell+1);
-    F2.resize(solParam.NumCell+1);
-    F3.resize(solParam.NumCell+1);
-    R.resize(solParam.NumCell+2);
+        F1[j].resize(solParam.NumCell-1);
+    F2.resize(solParam.NumCell-1);
+    F3.resize(solParam.NumCell-1);
+    R.resize(solParam.NumCell-1);
     //T.resize(solParam.NumCell +2);
     timeSolvind.push_back(0);
 }

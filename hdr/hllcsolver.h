@@ -2,6 +2,7 @@
 
 #include "abstractsolver.h"
 
+
 struct HLLCSolver: public AbstaractSolver
 {
     HLLCSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_);
@@ -10,10 +11,16 @@ struct HLLCSolver: public AbstaractSolver
     Matrix  hllcF2, hllcF3;
     vector<Matrix> hllcF1;
 
+    void setBorderConditions(double up_velocity_, double up_temp_, double down_temp_);
     void setStartCondition(macroParam start);
 
 protected:
+    //с помощью граничных условий задаёт значения в крайних ячейках
+    void useBorder();
+
+    //подготовка размеров всех нужных векторов и инициализация начальными параметрами
     void prepareSolving();
+
     // Расчет вектора потоков во всех ячейках
     void computeF();
 

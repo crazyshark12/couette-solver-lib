@@ -7,6 +7,9 @@ struct MixtureComponent
 {
     double density;                 //плотность компоненты
     double molarMass; // молярная масса
+    double epsilonDevK; // параметр в потенциале (для рассчёта вязкости) (хз пока чё это такое)
+    double mass;
+    double sigma; // диаметр в метрах
     //... какие-то другие параметры компонент
     std::string name;                    //название компоненты
 
