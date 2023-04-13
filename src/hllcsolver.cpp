@@ -33,7 +33,6 @@ void HLLCSolver::solve()
         updatePoints();
 
         //записать данные, если это требуется
-        //writePoints(timeSolvind.last()*100000); // наносек
         writePoints(T*1000000); // микросек
     }
 }
@@ -117,12 +116,9 @@ void HLLCSolver::prepareSolving()
         points[i].mixture = mixture;
         points[i].temp = startParam.temp;
         points[i].fractionArray =  startParam.fractionArray;
-        points[i].densityArray =  startParam.densityArray;
-        double density = 0;
-        for(size_t j = 0; j < mixture.NumberOfComponents; j++)
-            density += points[i].densityArray[j]*points[i].fractionArray[j];
-        points[i].density = density;
-        points[i].pressure = points[i].density * (UniversalGasConstant/mixture.molarMass()) * points[i].temp;
+        points[i].pressure = startParam.pressure;
+        points[i].density = startParam.pressure /(UniversalGasConstant/mixture.molarMass() * startParam.temp);
+        points[i].densityArray[0] =  points[i].density;
         points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
         points[i].velocity = solParam.Ma*points[i].soundSpeed;
     }

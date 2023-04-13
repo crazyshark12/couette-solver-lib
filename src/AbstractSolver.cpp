@@ -39,7 +39,7 @@ void AbstaractSolver::prepareSolving()
 
     //downParam.velocity = downParam.density*downParam.velocity/upParam.density;
 
-    for(auto i  = 1; i < solParam.NumCell-1; i++)
+    for(auto i  = 0; i < solParam.NumCell; i++)
     {
         U1[0][i] = startParam.density;
         for(size_t j = j; j < mixture.NumberOfComponents; j++)
@@ -85,16 +85,6 @@ void AbstaractSolver::updatePoints()
 }
 void AbstaractSolver::  prepareVectors() // подготовка размеров нужных векторов и то как будут задаваться условия в крайних ячейках
 {
-    for(size_t j = 0; j < mixture.NumberOfComponents; j++)
-    {
-        U1[j][0] = U1[j][1];
-        U1[j][solParam.NumCell-2] = U1[j][solParam.NumCell-1];
-    }
-    U2[0]=U2[1];
-    U3[0]=U3[1];
-
-    U2[solParam.NumCell-2]=U2[solParam.NumCell-1];
-    U3[solParam.NumCell-2]=U3[solParam.NumCell-1];
 
     F1.resize(mixture.NumberOfComponents);
     for(size_t j = 0; j < mixture.NumberOfComponents; j++)
