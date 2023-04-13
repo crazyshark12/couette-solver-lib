@@ -62,6 +62,7 @@ void AbstaractSolver::setDt()
     auto max =*std::max_element(temp.begin(), temp.end());  // это нужно чтобы правильно подобрать временной шаг, чтобы соблюдался критерий КФЛ
     double dt = solParam.CFL*pow(delta_h,1)/max;
     timeSolvind.push_back(dt);
+    //timeSolvind.push_back(0.00001);
     return;
 }
 

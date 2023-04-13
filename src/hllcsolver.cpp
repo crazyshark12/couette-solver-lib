@@ -12,10 +12,13 @@ HLLCSolver::HLLCSolver(Mixture mixture_, macroParam startParam_, solverParams so
 void HLLCSolver::solve()
 {
     prepareSolving();
+    writePoints(-1);
+    double T = 0;
     for(auto i  = 0; i < solParam.MaxIter; i++)
     {
         // Устанавливаем текущий временной шаг
         setDt();
+        T += timeSolvind.last();
         // Вычисляем вектор поточных членов и релаксационных членов
         computeF();
         // HLLС
@@ -28,6 +31,10 @@ void HLLCSolver::solve()
 
         // Обновляем вектор макропараметров
         updatePoints();
+
+        //записать данные, если это требуется
+        //writePoints(timeSolvind.last()*100000); // наносек
+        writePoints(T*1000000); // микросек
     }
 }
 
@@ -46,6 +53,18 @@ void HLLCSolver::setStartCondition(macroParam start)
     mixture = startParam.mixture;
 }
 
+void HLLCSolver::setWriter(DataWriter *writer_)
+{
+    writer = writer_;
+    isWriteData = true;
+}
+
+void HLLCSolver::writePoints(double i)
+{
+    if(isWriteData)
+        writer->writeData(points,i);
+}
+
 void HLLCSolver::useBorder()
 {
     //0
@@ -54,7 +73,7 @@ void HLLCSolver::useBorder()
     points[0].densityArray =points[1].densityArray;
     points[0].fractionArray =points[1].fractionArray;
     points[0].velocity = -points[1].velocity;
-    points[0].temp = -points[1].temp +  border.down_temp;
+    points[0].temp = -points[1].temp +  2*border.down_temp;
     // дополнительные рассчитываемые величины
     points[0].pressure = points[0].density * (UniversalGasConstant/mixture.molarMass()) * points[0].temp;
     points[0].soundSpeed = sqrt(solParam.Gamma*points[0].pressure/points[0].density);
@@ -66,7 +85,7 @@ void HLLCSolver::useBorder()
     points[solParam.NumCell-1].densityArray =points[solParam.NumCell-2].densityArray;
     points[solParam.NumCell-1].fractionArray =points[solParam.NumCell-2].fractionArray;
     points[solParam.NumCell-1].velocity = -points[solParam.NumCell-2].velocity + 2*border.up_velocity;
-    points[solParam.NumCell-1].temp = -points[solParam.NumCell-2].temp +  border.up_temp;
+    points[solParam.NumCell-1].temp = -points[solParam.NumCell-2].temp +  2*border.up_temp;
     // дополнительные рассчитываемые величины
     points[solParam.NumCell-1].pressure = points[solParam.NumCell-1].density * (UniversalGasConstant/mixture.molarMass()) * points[solParam.NumCell-1].temp;
     points[solParam.NumCell-1].soundSpeed = sqrt(solParam.Gamma*points[solParam.NumCell-1].pressure/points[solParam.NumCell-1].density);

@@ -8,6 +8,7 @@
 #include "Mixture.h"
 #include "coeffsolver.h"
 #include "BorderCondition.h"
+#include "DataWriter.h"
 
 struct AbstaractSolver
 {
@@ -21,6 +22,8 @@ public:
     solverParams solParam;
     CoeffSolver coeffSolver;
     BorderCondition border;
+    DataWriter* writer;
+
 protected:
 
     virtual void prepareSolving();

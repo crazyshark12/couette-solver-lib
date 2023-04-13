@@ -1,5 +1,8 @@
 #include "hllcsolver.h"
+#include "DataWriter.h"
+#include <filesystem>
 
+namespace fs = std::filesystem;
 int main()
 {
     MixtureComponent argon;
@@ -14,7 +17,7 @@ int main()
     macroParam startParam(mixture);
     startParam.fractionArray[0] = 1;
     startParam.densityArray[0] = argon.density;
-    startParam.temp = 100;
+    startParam.temp = 273;
 
     solverParams solParam;
     solParam.NumCell     = 10;    // Число расчтеных ячеек
@@ -23,12 +26,16 @@ int main()
     solParam.MaxIter     = 10; // максимальное кол-во шагов по времени
     solParam.Ma       = 0;    // Число маха
 
+    DataWriter writer("D:/couette/couette-solver-lib");
+
     double T1wall = 300;
     double T2wall = 700;
     double velocity = 2;
-    double h = 2;
+    double h = 0.2;
     HLLCSolver solver(mixture,startParam,solParam);
+    solver.setWriter(&writer);
     solver.setDelta_h(h / solParam.NumCell);
     solver.setBorderConditions(velocity,T2wall,T1wall);
     solver.solve();
+
 }
