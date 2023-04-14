@@ -335,23 +335,14 @@ void HLLCSolver::computeHllcF()
 void HLLCSolver::updateU()
 {
     // Используем вектор потоков и релаксационные члены чтобы обновить U
-//    for(auto i  = 1; i < solParam.NumCell-1; i++)
-//    {
-//        for (int j = 0; j < mixture.NumberOfComponents; j++)
-//        {
-//            U1[j][i] += (/*R[j][i]*/0 - (hllcF1[j][i] - hllcF1[j][i - 1]) / delta_h) * timeSolvind.last();
-//        }
-//        U2[i] += (0 - (hllcF2[i] - hllcF2[i - 1]) / delta_h) * timeSolvind.last();
-//        U3[i] += (0 - (hllcF3[i] - hllcF3[i - 1]) / delta_h) * timeSolvind.last();
-//    }
-    for(auto i  = 1; i < solParam.NumCell; i++)
+    for(auto i  = 1; i < solParam.NumCell-1; i++)
     {
         for (int j = 0; j < mixture.NumberOfComponents; j++)
         {
-            U1[j][i] += (/*R[j][i]*/0 - (F1[j][i] - F1[j][i - 1]) / delta_h) * timeSolvind.last();
+            U1[j][i] += (/*R[j][i]*/0 - (hllcF1[j][i] - hllcF1[j][i - 1]) / delta_h) * timeSolvind.last();
         }
-        U2[i] += (0 - (F2[i] - F2[i - 1]) / delta_h) * timeSolvind.last()*1000000;
-        U3[i] += (0 - (F3[i] - F3[i - 1]) / delta_h) * timeSolvind.last();
+        U2[i] += (0 - (hllcF2[i] - hllcF2[i - 1]) / delta_h) * timeSolvind.last();
+        U3[i] += (0 - (hllcF3[i] - hllcF3[i - 1]) / delta_h) * timeSolvind.last();
     }
 }
 
