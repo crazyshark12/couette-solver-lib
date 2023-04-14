@@ -28,6 +28,7 @@ protected:
 
     //с помощью граничных условий задаёт значения в крайних ячейках
     void useBorder();
+    void UpdateBorderU();
 
     //подготовка размеров всех нужных векторов и инициализация начальными параметрами
     void prepareSolving();
@@ -48,7 +49,7 @@ protected:
     void updatePoints();
 
     //вычисляет температуру в i-ой ячейке
-    void computeT(macroParam &p, size_t i);
+    double computeT(macroParam p, size_t i);
 
     //записывать ли данные в файл ?
     bool isWriteData = false;

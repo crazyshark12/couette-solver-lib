@@ -22,11 +22,13 @@ void DataWriter::writeData(vector<macroParam> data, double time)
     ofstream pressure(localDir/"pressure.txt",std::ios::out);
     ofstream velocity(localDir/"velocity.txt",std::ios::out);
     ofstream temp(localDir/"temp.txt",std::ios::out);
+    ofstream density(localDir/"density.txt",std::ios::out);
     for(size_t i = 0; i < data.size(); i++)
     {
         pressure<<data[i].pressure<<endl;
         velocity<<data[i].velocity<<endl;
         temp<<data[i].temp<<endl;
+        density<<data[i].density<<endl;
     }
     pressure.close();
     velocity.close();

@@ -39,7 +39,7 @@ void AbstaractSolver::prepareSolving()
 
     //downParam.velocity = downParam.density*downParam.velocity/upParam.density;
 
-    for(auto i  = 0; i < solParam.NumCell; i++)
+    for(auto i  = 0; i < solParam.NumCell; i++) // тут возможно от 1 до solParam.NumCell-1
     {
         U1[0][i] = startParam.density;
         for(size_t j = j; j < mixture.NumberOfComponents; j++)
@@ -88,10 +88,10 @@ void AbstaractSolver::  prepareVectors() // подготовка размеро�
 
     F1.resize(mixture.NumberOfComponents);
     for(size_t j = 0; j < mixture.NumberOfComponents; j++)
-        F1[j].resize(solParam.NumCell-1);
-    F2.resize(solParam.NumCell-1);
-    F3.resize(solParam.NumCell-1);
-    R.resize(solParam.NumCell-1);
+        F1[j].resize(solParam.NumCell);
+    F2.resize(solParam.NumCell);
+    F3.resize(solParam.NumCell);
+    R.resize(solParam.NumCell);
     //T.resize(solParam.NumCell +2);
     timeSolvind.push_back(0);
 }
