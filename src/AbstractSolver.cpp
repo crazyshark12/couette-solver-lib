@@ -57,8 +57,7 @@ void AbstaractSolver::setDt()
 {
     Matrix velocity = U2/U1[0];
     auto pressure = (U3 - Matrix::POW(velocity,2)*0.5*U1[0])*(solParam.Gamma - 1);
-    Matrix sound_speed = Matrix::SQRT(pressure*solParam.Gamma/U1[0]);
-    auto temp = velocity + sound_speed;                     // что это, типо абсолютная скорость?
+    auto temp = velocity;
     auto max =*std::max_element(temp.begin(), temp.end());  // это нужно чтобы правильно подобрать временной шаг, чтобы соблюдался критерий КФЛ
     double dt = solParam.CFL*pow(delta_h,1)/max;
     timeSolvind.push_back(dt);
