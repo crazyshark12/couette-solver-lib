@@ -296,8 +296,9 @@ void GodunovSolver::updatePoints()
     for(size_t i = 1; i < points.size()-1; i++)
     {
         points[i].velocity = U2[i]/U1[0][i];
-        points[i].pressure = (U3[i] - pow(points[i].velocity,2)*0.5*U1[0][i])*(solParam.Gamma - 1);
         points[i].density = U1[0][i];
+        points[i].pressure = (U3[i] - pow(points[i].velocity,2)*0.5*U1[0][i])*(solParam.Gamma - 1);
+
         for(size_t j = 0; j < mixture.NumberOfComponents; j++)
         {
             points[i].densityArray[j] =  U1[j][i];

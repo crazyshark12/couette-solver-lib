@@ -22,10 +22,10 @@ int main()
     startParam.temp = 140; //140
 
     solverParams solParam;
-    solParam.NumCell     = 100;    // Число расчтеных ячеек
+    solParam.NumCell     = 20;    // Число расчтеных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 1;    // Число Куранта
-    solParam.MaxIter     = 1000; // максимальное кол-во шагов по времени
+    solParam.MaxIter     = 100000; // максимальное кол-во шагов по времени
     solParam.Ma       = 0;    // Число маха
 
     // это меняешь под себя. Он так создаст папку data
