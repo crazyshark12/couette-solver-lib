@@ -10,10 +10,10 @@
 #include "bordercondition.h"
 #include "datawriter.h"
 
-struct AbstaractSolver
+struct AbstractSolver
 {
 public:
-    AbstaractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_);
+    AbstractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_);
 
     // запускает процесс решения задачи
     virtual void solve() = 0;
@@ -21,11 +21,11 @@ public:
     //устанавливает размер ячейки
     void setDelta_h(double dh);
 
-    // устанавливает некоторые граничные условия (TODO сделать более общую структуру)
-    void setBorderConditions(double up_velocity_, double up_temp_, double down_temp_);
-
     // устанавливает начальное распрделение температуры, плотности и скорости
     void setStartCondition(macroParam start);
+
+    // устанавливает некоторые граничные условия (TODO сделать более общую структуру)
+    void setBorderConditions(double up_velocity_, double up_temp_, double down_temp_);
 
     // устанавливает записыватель и поднимает флаг записи
     void setWriter(DataWriter *writer_);
@@ -46,16 +46,16 @@ protected:
     virtual void prepareSolving();
 
     //подготавливает размеры всех векторов
-    void prepareVectors();
+    virtual void prepareVectors();
 
     // устанавливает временной шаг
     void setDt();
 
-    virtual void updatePoints();
+    void useBorder();
+    void UpdateBorderU();
 
-    // Значения потока на границах ячеек по методу HLLC
-    Matrix  hllcF2, hllcF3;
-    vector<Matrix> hllcF1;
+    //вычисляет температуру в i-ой ячейке
+    double computeT(macroParam p, size_t i);
 
     //надо придумать название получше
     Matrix U2, U3;

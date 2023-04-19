@@ -5,5 +5,6 @@ project(${PROJECT_MAIN} LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-add_executable(${PROJECT_MAIN} couette-solver-lib_main.cpp)
+#add_executable(${PROJECT_MAIN} couette-solver-lib_HLLCmain.cpp)
+add_executable(${PROJECT_MAIN} couette-solver-lib_Godunovmain.cpp)
 target_link_libraries(${PROJECT_MAIN} couette-solver-lib)

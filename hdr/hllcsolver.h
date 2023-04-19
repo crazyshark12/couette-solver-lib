@@ -3,33 +3,18 @@
 #include "abstractsolver.h"
 
 
-struct HLLCSolver: public AbstaractSolver
+struct HLLCSolver: public AbstractSolver
 {
-    HLLCSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_):AbstaractSolver(mixture_,startParam_,solParam_){};
+    HLLCSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_):AbstractSolver(mixture_,startParam_,solParam_){};
 
     // запускает процесс решения задачи
     void solve();
 
-    // устанавливает некоторые граничные условия (TODO сделать более общую структуру)
-    void setBorderConditions(double up_velocity_, double up_temp_, double down_temp_);
 
-    // устанавливает начальное распрделение температуры, плотности и скорости
-    void setStartCondition(macroParam start);
-
-    // устанавливает записыватель и поднимает флаг записи
-    void setWriter(DataWriter *writer_);
-
-    // Значения потока на границах ячеек по методу HLLC
-    Matrix  hllcF2, hllcF3;
-    vector<Matrix> hllcF1;
 protected:
 
-    //с помощью граничных условий задаёт значения в крайних ячейках
-    void useBorder();
-    void UpdateBorderU();
-
-    //подготовка размеров всех нужных векторов и инициализация начальными параметрами
-    void prepareSolving();
+    //подготавливает размеры всех векторов
+    void prepareVectors();
 
     // Расчет вектора потоков во всех ячейках
     void computeF();
@@ -40,14 +25,15 @@ protected:
     // Расчет потоков на стыках ячеек методом HLLC
     void computeHllcF();
 
-    // обновляет вектор U
     void updateU();
 
     // обновлеяет вектор макропараметров с помощью U
     void updatePoints();
 
-    //вычисляет температуру в i-ой ячейке
-    double computeT(macroParam p, size_t i);
+
+    // Значения потока на границах ячеек по методу HLLC
+    Matrix  fluxF2, fluxF3;
+    vector<Matrix> fluxF1;
 
     //записывать ли данные в файл ?
     bool isWriteData = false;
