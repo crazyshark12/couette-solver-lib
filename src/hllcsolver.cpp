@@ -100,7 +100,8 @@ void HLLCSolver::UpdateBorderU()
         for(size_t j = j; j < mixture.NumberOfComponents; j++)
             U1[j][i] = points[i].densityArray[j];
         U2[i] = points[i].density*points[i].velocity;
-        U3[i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
+        //U3[i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
+        U3[i] = (3*points[i].pressure)/2 + 0.5*pow(points[i].velocity,2)*points[i].density;
     }
 }
 
@@ -145,7 +146,8 @@ void HLLCSolver::prepareSolving()
         U2[i] = points[i].density*points[i].velocity;
 
 
-        U3[i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
+        //U3[i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
+        U3[i] = (3*points[i].pressure)/2 + 0.5*pow(points[i].velocity,2)*points[i].density;
 
 
 //        double n = Nav / points[i].mixture.molarMass() * points[i].density;
@@ -228,7 +230,7 @@ void HLLCSolver::computeHllcF()
     for(size_t i = 0 ; i < solParam.NumCell-1; i++)
     {
         if(i==solParam.NumCell-3)
-            double x;
+            double x = 34;
         // Временные переменные
         double v0, v1,a0,a1, rho0, rho1, H0 , H1, avg_H, S0 , S1, S_star;
         vector<double> U1_star_0(U1.size()), U1_star_1(U1.size());
@@ -239,15 +241,16 @@ void HLLCSolver::computeHllcF()
         v1 = U2[i+1]/U1[0][i+1];
         rho0 = sqrt(U1[0][i]);
         rho1 = sqrt(U1[0][i+1]);
+
         avg_v = (rho0 * v0 + rho1 * v1) / (rho0 + rho1);
-        H0 = (5*points[i].pressure)/(2*U1[0][i]);
-        H1 = (5*points[i+1].pressure)/(2*U1[0][i+1]);
+        H0 = (3*points[i].pressure)/(2*U1[0][i]);
+        H1 = (3*points[i+1].pressure)/(2*U1[0][i+1]);
         avg_H = (rho0 * H0 + rho1 * H1) / (rho0 + rho1);
         avg_a = sqrt((solParam.Gamma - 1)*(avg_H - 0.5 * pow(avg_v,2)));
-        S0 = avg_v - avg_a;
-        S1 = avg_v + avg_a;
-//        S0 = min(avg_v - avg_a, 0.0 );
-//        S1 = max(avg_v + avg_a, 0.0);
+        S0 = (avg_v - avg_a);
+        S1 = (avg_v + avg_a);
+//        S0 = min(v0, v1);
+//        S1 = max(v0, v1);
         S_star = (points[i+1].pressure - points[i].pressure +
                 pow(rho0,2)*v0*(S0 - v0) - pow(rho1,2)*v1*(S1 - v1))
                 / (pow(rho0,2)*(S0 - v0) - pow(rho1,2)*(S1 - v1));
@@ -306,10 +309,10 @@ void HLLCSolver::computeHllcF()
         {
             for(size_t j = 0; j < mixture.NumberOfComponents; j++)
             {
-                hllc_f1[j] = (S1 * F1[j][i] +S0 * F1[j][i+1] + S0*S1*(U1[j][i+1] - U1[j][i]))/(S1 - S0);
+                hllc_f1[j] = (S1 * F1[j][i] - S0 * F1[j][i+1] + S0*S1*(U1[j][i+1] - U1[j][i]))/(S1 - S0);
             }
-            hllc_f2 = (S1 * F2[i] +S0 * F2[i+1] + S0*S1*(U2[i+1] - U2[i]))/(S1 - S0);
-            hllc_f3 = (S1 * F3[i] +S0 * F3[i+1] + S0*S1*(U3[i+1] - U3[i]))/(S1 - S0);
+            hllc_f2 = (S1 * F2[i] - S0 * F2[i+1] + S0*S1*(U2[i+1] - U2[i]))/(S1 - S0);
+            hllc_f3 = (S1 * F3[i] - S0 * F3[i+1] + S0*S1*(U3[i+1] - U3[i]))/(S1 - S0) ;
         }
 //        else if( S0 <= 0 && S_star >= 0)
 //        {

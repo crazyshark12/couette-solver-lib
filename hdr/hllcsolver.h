@@ -13,10 +13,10 @@ struct HLLCSolver: public AbstaractSolver
     // устанавливает некоторые граничные условия (TODO сделать более общую структуру)
     void setBorderConditions(double up_velocity_, double up_temp_, double down_temp_);
 
-    //устанавливает начальное распрделение температуры, плотности и скорости
+    // устанавливает начальное распрделение температуры, плотности и скорости
     void setStartCondition(macroParam start);
 
-    //устанавливает записыватель и поднимает флаг записи
+    // устанавливает записыватель и поднимает флаг записи
     void setWriter(DataWriter *writer_);
 
     // Значения потока на границах ячеек по методу HLLC
