@@ -5,7 +5,7 @@
 
 struct HLLCSolver: public AbstaractSolver
 {
-    HLLCSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_);
+    HLLCSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_):AbstaractSolver(mixture_,startParam_,solParam_){};
 
     // запускает процесс решения задачи
     void solve();
@@ -23,8 +23,6 @@ struct HLLCSolver: public AbstaractSolver
     Matrix  hllcF2, hllcF3;
     vector<Matrix> hllcF1;
 protected:
-    //записывает текущие макропараметры points[] в папку с названием i
-    void writePoints(double i);
 
     //с помощью граничных условий задаёт значения в крайних ячейках
     void useBorder();

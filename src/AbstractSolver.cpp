@@ -2,9 +2,38 @@
 
 #include "abstractsolver.h"
 
-void AbstaractSolver::setMixture(Mixture mixture_)
+AbstaractSolver::AbstaractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_)
 {
-    mixture =  mixture_;
+    mixture = mixture_;
+    startParam=startParam_;
+    solParam =solParam_;
+    delta_h = 0;
+}
+void AbstaractSolver::setBorderConditions(double up_velocity_, double up_temp_, double down_temp_)
+{
+    border.up_velocity =  up_velocity_;
+    border.up_temp =  up_temp_;
+    border.down_temp =  down_temp_;
+    return;
+}
+
+
+void AbstaractSolver::setStartCondition(macroParam start)
+{
+    startParam = start;
+    mixture = startParam.mixture;
+}
+
+void AbstaractSolver::setWriter(DataWriter *writer_)
+{
+    writer = writer_;
+    isWriteData = true;
+}
+
+void AbstaractSolver::writePoints(double i)
+{
+    if(isWriteData)
+        writer->writeData(points,i);
 }
 
 void AbstaractSolver::setDelta_h(double dh)
@@ -14,14 +43,7 @@ void AbstaractSolver::setDelta_h(double dh)
 
 void AbstaractSolver::prepareSolving()
 {
-
-    U2.resize(solParam.NumCell);
-    U3.resize(solParam.NumCell);
-    U1.resize(mixture.NumberOfComponents);
-    for(size_t i = 0 ; i <  U1.size(); i++)
-        U1[i].resize(solParam.NumCell);
-    points.resize(solParam.NumCell);
-
+    prepareVectors();
     for(size_t i = 0; i < points.size(); i++)
     {
         points[i].pressure = startParam.pressure;
@@ -47,7 +69,25 @@ void AbstaractSolver::prepareSolving()
         U2[i] = startParam.density*startParam.velocity;
         U3[i] = startParam.pressure/(solParam.Gamma-1)+0.5*pow(startParam.velocity,2)*startParam.density; // скорее всего иначе
     }
-    prepareVectors();
+
+}
+
+void AbstaractSolver::prepareVectors()
+{
+    U2.resize(solParam.NumCell);
+    U3.resize(solParam.NumCell);
+    U1.resize(mixture.NumberOfComponents);
+    for(size_t i = 0 ; i <  U1.size(); i++)
+        U1[i].resize(solParam.NumCell);
+    points.resize(solParam.NumCell);
+
+    F1.resize(mixture.NumberOfComponents);
+    for(size_t j = 0; j < mixture.NumberOfComponents; j++)
+        F1[j].resize(solParam.NumCell);
+    F2.resize(solParam.NumCell);
+    F3.resize(solParam.NumCell);
+    R.resize(solParam.NumCell);
+    timeSolvind.push_back(0);
 }
 
 
@@ -82,16 +122,5 @@ void AbstaractSolver::updatePoints()
     }
     return;
 }
-void AbstaractSolver::  prepareVectors() // подготовка размеров нужных векторов и то как будут задаваться условия в крайних ячейках
-{
 
-    F1.resize(mixture.NumberOfComponents);
-    for(size_t j = 0; j < mixture.NumberOfComponents; j++)
-        F1[j].resize(solParam.NumCell);
-    F2.resize(solParam.NumCell);
-    F3.resize(solParam.NumCell);
-    R.resize(solParam.NumCell);
-    //T.resize(solParam.NumCell +2);
-    timeSolvind.push_back(0);
-}
 

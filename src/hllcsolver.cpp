@@ -1,13 +1,13 @@
 #include "hllcsolver.h"
 #include <algorithm>
 
-HLLCSolver::HLLCSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_)
-{
-    mixture = mixture_;
-    startParam=startParam_;
-    solParam =solParam_;
-    delta_h = 1;
-}
+//HLLCSolver::HLLCSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_)
+//{
+//    mixture = mixture_;
+//    startParam=startParam_;
+//    solParam =solParam_;
+//    delta_h = 1;
+//}
 
 void HLLCSolver::solve()
 {
@@ -43,25 +43,6 @@ void HLLCSolver::setBorderConditions(double up_velocity_, double up_temp_, doubl
     border.up_temp =  up_temp_;
     border.down_temp =  down_temp_;
     return;
-}
-
-
-void HLLCSolver::setStartCondition(macroParam start)
-{
-    startParam = start;
-    mixture = startParam.mixture;
-}
-
-void HLLCSolver::setWriter(DataWriter *writer_)
-{
-    writer = writer_;
-    isWriteData = true;
-}
-
-void HLLCSolver::writePoints(double i)
-{
-    if(isWriteData)
-        writer->writeData(points,i);
 }
 
 void HLLCSolver::useBorder()

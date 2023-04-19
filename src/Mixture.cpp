@@ -1,4 +1,4 @@
-#include "Mixture.h"
+#include "mixture.h"
 
 Mixture::Mixture(std::vector<MixtureComponent> components_)
 {

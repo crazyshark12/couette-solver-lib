@@ -1,4 +1,4 @@
-#include "DataWriter.h"
+#include "datawriter.h"
 DataWriter::DataWriter(std::string pathName_)
 {
 

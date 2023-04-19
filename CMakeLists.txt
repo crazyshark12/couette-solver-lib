@@ -8,25 +8,25 @@ set(SRC_FOLDER "${PROJECT_SOURCE_DIR}/src")
 set(HDR_FOLDER "${PROJECT_SOURCE_DIR}/hdr")
 
 
-set(${PROJECT_NAME}_SRC  ${SRC_FOLDER}/AbstractSolver.cpp
+set(${PROJECT_NAME}_SRC  ${SRC_FOLDER}/abstractsolver.cpp
                          ${SRC_FOLDER}/hllcsolver.cpp
                          ${SRC_FOLDER}/godunovsolver.cpp
 			 ${SRC_FOLDER}/coeffsolver.cpp
-                         ${SRC_FOLDER}/AdditionalSolver.cpp
-                         ${SRC_FOLDER}/Mixture.cpp
-                         ${SRC_FOLDER}/BorderCondition.cpp
-                         ${SRC_FOLDER}/DataWriter.cpp
+                         ${SRC_FOLDER}/additionalsolver.cpp
+                         ${SRC_FOLDER}/mixture.cpp
+                         ${SRC_FOLDER}/bordercondition.cpp
+                         ${SRC_FOLDER}/datawriter.cpp
 )
 
-set(${PROJECT_NAME}_HDR  ${HDR_FOLDER}/AbstractSolver.h
+set(${PROJECT_NAME}_HDR  ${HDR_FOLDER}/abstractsolver.h
                          ${HDR_FOLDER}/hllcsolver.h
                          ${HDR_FOLDER}/godunovsolver.h
                          ${HDR_FOLDER}/coeffsolver.h
-                         ${HDR_FOLDER}/AdditionalSolver.h
+                         ${HDR_FOLDER}/additionalsolver.h
                          ${HDR_FOLDER}/global.h    
-                         ${HDR_FOLDER}/Mixture.h
-                         ${HDR_FOLDER}/BorderCondition.h
-                         ${HDR_FOLDER}/DataWriter.h
+                         ${HDR_FOLDER}/mixture.h
+                         ${HDR_FOLDER}/bordercondition.h
+                         ${HDR_FOLDER}/datawriter.h
 )
 
 add_subdirectory(example)
