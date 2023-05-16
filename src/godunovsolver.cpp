@@ -1,14 +1,17 @@
 #include "godunovsolver.h"
+#include <iostream>
+#include <omp.h>
 void GodunovSolver::solve()
 {
     prepareSolving();
     writePoints(-1);
     double T = 0;
-    for(auto i  = 0; i < solParam.MaxIter; i++)
+    for(size_t i  = 0; i < solParam.MaxIter; i++)
     {
         // Устанавливаем текущий временной шаг
         setDt();
         T += timeSolvind.last();
+
         // FluxF1,2,3
         computeFluxF();
         // Вычисляем вектор релаксационных членов
@@ -21,8 +24,22 @@ void GodunovSolver::solve()
         updatePoints();
 
         //записать данные, если это требуется
-        writePoints(T*1000000); // микросек
+        //writePoints(T*1000000); // микросек
+        if(i%1 == 0)
+        {
+            std::cout<<i<<" iteration"<<std::endl;
+            writePoints(T*1); // микросек
+        }
+
+        //проверка точности
+        if(isObserverWatching)
+        {
+            // то есть если проверка наблюдателя не пройдена, нужно прекратить рассчёт
+            if(!observerCheck(i))
+                break;
+        }
     }
+    writePoints(T*1000000);
 }
 
 void GodunovSolver::prepareVectors()
@@ -33,12 +50,14 @@ void GodunovSolver::prepareVectors()
 
 void GodunovSolver::computeFluxF()
 {
+    #pragma omp parallel for schedule(static)
     for(size_t i =0; i < solParam.NumCell-1; i++)
     {
         rezultAfterPStart[i] = ExacRiemanSolver(points[i],points[i+1],solParam.Gamma);
         rezultAfterPStart[i].densityArray[0] = rezultAfterPStart[i].density;
     }
 
+    #pragma omp parallel for schedule(static)
     for(size_t i =0; i < solParam.NumCell-1; i++)
     {
         auto point = rezultAfterPStart[i];
@@ -293,7 +312,9 @@ void GodunovSolver::updateU()
 
 void GodunovSolver::updatePoints()
 {
-    for(size_t i = 1; i < points.size()-1; i++)
+    auto size = points.size()-1;
+    #pragma omp parallel for schedule(static)
+    for(size_t i = 1; i < size; i++)
     {
         points[i].velocity = U2[i]/U1[0][i];
         points[i].density = U1[0][i];

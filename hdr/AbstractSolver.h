@@ -9,6 +9,7 @@
 #include "coeffsolver.h"
 #include "bordercondition.h"
 #include "datawriter.h"
+#include "observer.h"
 
 struct AbstractSolver
 {
@@ -30,6 +31,10 @@ public:
     // устанавливает записыватель и поднимает флаг записи
     void setWriter(DataWriter *writer_);
 
+    // устанавливает наблюдателя, который будет следить за тем, чтобы рассчёт остановился, когда будет достигнута новая точность
+    void setObserver(Observer* obs);
+
+    Observer* observer;
     Mixture mixture;
     macroParam startParam;
     solverParams solParam;
@@ -57,6 +62,9 @@ protected:
     //вычисляет температуру в i-ой ячейке
     double computeT(macroParam p, size_t i);
 
+    //функция для работы с наблюдателем, выдаёт true если нужно продолжать рассчёт
+    bool observerCheck(size_t currentIteration);
+
     //надо придумать название получше
     Matrix U2, U3;
     vector<Matrix> U1, R;        //U1[i] = i-ая компонента
@@ -79,4 +87,11 @@ protected:
 
     //записывать ли данные в файл ?
     bool isWriteData = false;
+
+    //смотрит ли наблюдатель за установлением равновесия?
+    bool isObserverWatching = false;
+
+    // через какое количество итераций наблюдатель должен проверять соотвествие
+    //(берутся две соседних итерации, а не те, что разделены watcherIteration итерациями)
+    int watcherIteration = 1;
 };

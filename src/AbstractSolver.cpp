@@ -30,6 +30,13 @@ void AbstractSolver::setWriter(DataWriter *writer_)
     isWriteData = true;
 }
 
+void AbstractSolver::setObserver(Observer* obs)
+{
+    observer = obs;
+    watcherIteration = observer->getPeriodicity();
+    isObserverWatching = true;
+}
+
 void AbstractSolver::writePoints(double i)
 {
     if(isWriteData)
@@ -152,6 +159,20 @@ double AbstractSolver::computeT(macroParam p, size_t i) // i - номер яче
     double n = Nav / p.mixture.molarMass() * p.density;
     return U * 2/3 * p.density / (n * kB);
 //    double n = Nav / p.mixture.molarMass() * p.density;
-//    p.temp = (U3[i] - points[i].density * pow(points[i].velocity,2) / 2 )*(3/2 * n * kB ) ;
+    //    p.temp = (U3[i] - points[i].density * pow(points[i].velocity,2) / 2 )*(3/2 * n * kB ) ;
+}
+
+bool AbstractSolver::observerCheck(size_t currentIteration)
+{
+    if(currentIteration%watcherIteration == 0)
+    {
+        observer->remember(points);
+        return true;
+    }
+    if(currentIteration%watcherIteration == 1)
+    {
+        return observer->checkDifference(points);
+    }
+    return true;
 }
 

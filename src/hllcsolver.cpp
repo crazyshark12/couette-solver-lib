@@ -32,8 +32,19 @@ void HLLCSolver::solve()
         // Обновляем вектор макропараметров
         updatePoints();
 
-        //записать данные, если это требуется
-        writePoints(T*1000000); // микросек
+        if(i%1 == 0)
+        {
+            std::cout<<i<<" iteration"<<std::endl;
+            writePoints(T*1); // микросек
+        }
+
+        //проверка точности
+//        if(isObserverWatching)
+//        {
+//            // то есть если проверка наблюдателя не пройдена, нужно прекратить рассчёт
+//            if(!observerCheck(i))
+//                break;
+//        }
     }
 }
 
@@ -52,32 +63,11 @@ void HLLCSolver::prepareVectors()
 
 void HLLCSolver::computeF()
 {
-    for(size_t i = 0 ; i < solParam.NumCell; i++)
+    for(size_t i = 0 ; i < solParam.NumCell-1; i++)
     {
-        // Временные переменные
-        macroParam p0(mixture), p1(mixture), p2(mixture);
-
-        // Забираем известные макропараметры в (.)-ах [i-1], [i], [i+1]
-        p1 = points[i];
-        if(i==0)
-        {
-            p0 = p1;
-            p2 = points[i + 1];
-        }
-        else if(i == solParam.NumCell-1)
-        {
-            p0 = points[i - 1];
-            p2 = p1;
-        }
-        else
-        {
-            p0 = points[i - 1];
-            p2 = points[i + 1];
-        }
-
         // Рассчитываем производные в точке i
-        double dv_dy = (p2.velocity - p0.velocity) / (2.0 * delta_h);
-        double dT_dy = (p2.temp - p0.temp) / (2.0 * delta_h);
+        double dv_dy = (points[i+1].velocity - points[i].velocity) / (delta_h);
+        double dT_dy = (points[i+1].temp - points[i].temp) / (delta_h);
         vector<double> dy_dy(mixture.NumberOfComponents);
 
         //учёт граничных условий
@@ -87,7 +77,7 @@ void HLLCSolver::computeF()
         {
             for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
             {
-                dy_dy[j] = (p2.fractionArray[j] - p0.fractionArray[j])/ (2.0 * delta_h);
+                dy_dy[j] = (points[i+1].fractionArray[j] - points[i].fractionArray[j])/ (delta_h);
             }
         }
         // Расчет поточных членов
@@ -100,7 +90,7 @@ void HLLCSolver::computeF()
         for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
         {
             if(j!=0)
-                F1[j][i] = -p1.density * mixture.getEffDiff(j) * dy_dy[j];
+                F1[j][i] = -points[i+1].density * mixture.getEffDiff(j) * dy_dy[j];
             else
                 F1[j][i] = 0;
         }
@@ -108,9 +98,9 @@ void HLLCSolver::computeF()
         F3[i] = 0;
         for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
         {
-            F3[i]+= - p1.density * mixture.getEffDiff(j)*dy_dy[j] * mixture.getEntalp(i);
+            F3[i]+= - points[i+1].density * mixture.getEffDiff(j)*dy_dy[j] * mixture.getEntalp(i+1);
         }
-        F3[i] += -lambda*dT_dy - etta*p1.velocity*dv_dy;
+        F3[i] += -lambda*dT_dy - etta*points[i+1].velocity*dv_dy;
     }
 }
 

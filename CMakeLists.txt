@@ -16,6 +16,7 @@ set(${PROJECT_NAME}_SRC  ${SRC_FOLDER}/abstractsolver.cpp
                          ${SRC_FOLDER}/mixture.cpp
                          ${SRC_FOLDER}/bordercondition.cpp
                          ${SRC_FOLDER}/datawriter.cpp
+                         ${SRC_FOLDER}/observer.cpp
 )
 
 set(${PROJECT_NAME}_HDR  ${HDR_FOLDER}/abstractsolver.h
@@ -27,11 +28,26 @@ set(${PROJECT_NAME}_HDR  ${HDR_FOLDER}/abstractsolver.h
                          ${HDR_FOLDER}/mixture.h
                          ${HDR_FOLDER}/bordercondition.h
                          ${HDR_FOLDER}/datawriter.h
+                         ${HDR_FOLDER}/observer.h
 )
 
 add_subdirectory(example)
 
+find_package(OpenMP)
+IF(OPENMP_FOUND)
+    message("Found OpenMP! ^_^")
+    # add flags for OpenMP
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_SHARED_LINKER_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+ELSE()
+    message("Missed OpenMP! x_x")
+ENDIF()
+
 add_library(${PROJECT_NAME} ${${PROJECT_NAME}_SRC} ${${PROJECT_NAME}_HDR})
+
+TARGET_LINK_LIBRARIES(${PROJECT_NAME}  ${OpenMP_CXX_LIBRARIES} ${PROJECT_LINK_LIBS})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE -D_USE_MATH_DEFINES)
 

@@ -26,6 +26,7 @@ protected:
     // обновлеяет вектор макропараметров с помощью U
     void updatePoints();
 
+
     double shareViscositySimple(double currentT);
 
 
