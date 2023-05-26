@@ -25,7 +25,7 @@ bool Observer::checkDifference(vector<macroParam> param)
         double d_temp = std::abs(previousParam[i].temp - param[i].temp);
         double d_rho = std::abs(previousParam[i].density - param[i].density);
         double d_pressure = std::abs(previousParam[i].pressure - param[i].pressure);
-        double d_velocity = std::abs(previousParam[i].velocity - param[i].velocity);
+        double d_velocity = std::abs(previousParam[i].velocity_tau - param[i].velocity_tau);
         double d_densityArray = 0;
         double d_fractionArray = 0;
         for(size_t j = 0; j < param[i].mixture.NumberOfComponents; j++)

@@ -23,11 +23,11 @@ int main()
     startParam.temp = 273; //140
 
     solverParams solParam;
-    solParam.NumCell     = 500;    // Число расчтеных ячеек
+    solParam.NumCell     = 50;    // Число расчтеных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 1;    // Число Куранта
     solParam.MaxIter     = 1000000000; // максимальное кол-во шагов по времени
-    solParam.Ma       = 0.51;    // Число маха
+    solParam.Ma       = 0.0;    // Число маха
 
     double precision = 0.000001; // точность
     Observer watcher(precision);
@@ -42,7 +42,7 @@ int main()
     double T2wall = 1000;
     double velocity = 300;
     double h = 1;
-    HLLCSolver solver(mixture,startParam,solParam);
+    GodunovSolver solver(mixture,startParam,solParam);
     writer.setDelta_h(h / solParam.NumCell);
     solver.setWriter(&writer);
     solver.setObserver(&watcher);

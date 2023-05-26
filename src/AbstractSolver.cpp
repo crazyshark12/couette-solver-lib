@@ -60,7 +60,9 @@ void AbstractSolver::prepareSolving()
         points[i].density = startParam.pressure * mixture.molarMass()/(UniversalGasConstant * startParam.temp);
         points[i].densityArray[0] =  points[i].density;
         points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
-        points[i].velocity = solParam.Ma*points[i].soundSpeed;
+        points[i].velocity_tau = solParam.Ma*points[i].soundSpeed;
+        points[i].velocity_normal = 0;
+        points[i].velocity = abs(points[i].velocity_tau);
     }
     // для points[0] и points[solParam.NumCell-1] (!важно что идёт после цикла!)
     useBorder();
@@ -70,7 +72,8 @@ void AbstractSolver::prepareSolving()
         U1[0][i] = points[i].density;
         for(size_t j = j; j < mixture.NumberOfComponents; j++)
             U1[j][i] = points[i].densityArray[j] ;
-        U2[i] = points[i].density*points[i].velocity;
+        U2[i] = points[i].density*points[i].velocity_tau;
+        U2_normal[i] = points[i].density*points[i].velocity_normal;
 
 
         //U3[i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
@@ -83,6 +86,7 @@ void AbstractSolver::prepareVectors()
 
     U1.resize(mixture.NumberOfComponents);
     U2.resize(solParam.NumCell);
+    U2_normal.resize(solParam.NumCell);
     U3.resize(solParam.NumCell);
     for(size_t i = 0 ; i <  U1.size(); i++)
         U1[i].resize(solParam.NumCell);
@@ -95,6 +99,7 @@ void AbstractSolver::prepareVectors()
     for(size_t j = 0; j < mixture.NumberOfComponents; j++)
         F1[j].resize(solParam.NumCell);
     F2.resize(solParam.NumCell);
+    F2_normal.resize(solParam.NumCell);
     F3.resize(solParam.NumCell);
 
     R.resize(solParam.NumCell);
@@ -121,7 +126,9 @@ void AbstractSolver::useBorder()
     points[0].density =points[1].density;
     points[0].densityArray =points[1].densityArray;
     points[0].fractionArray =points[1].fractionArray;
-    points[0].velocity = -points[1].velocity + 2*border.down_velocity;
+    points[0].velocity_tau = -points[1].velocity_tau + 2*border.down_velocity;
+    points[0].velocity_normal = 0;
+    points[0].velocity = abs(points[0].velocity_tau);
     points[0].temp = -points[1].temp +  2*border.down_temp;
     // дополнительные рассчитываемые величины
     points[0].pressure = points[0].density * (UniversalGasConstant/mixture.molarMass()) * points[0].temp;
@@ -133,7 +140,9 @@ void AbstractSolver::useBorder()
     points[solParam.NumCell-1].density =points[solParam.NumCell-2].density;
     points[solParam.NumCell-1].densityArray =points[solParam.NumCell-2].densityArray;
     points[solParam.NumCell-1].fractionArray =points[solParam.NumCell-2].fractionArray;
-    points[solParam.NumCell-1].velocity = -points[solParam.NumCell-2].velocity + 2*border.up_velocity;
+    points[solParam.NumCell-1].velocity_tau = -points[solParam.NumCell-2].velocity_tau + 2*border.up_velocity;
+    points[solParam.NumCell-1].velocity_normal = 0;
+    points[solParam.NumCell-1].velocity = abs(points[solParam.NumCell-1].velocity_tau);
     points[solParam.NumCell-1].temp = -points[solParam.NumCell-2].temp +  2*border.up_temp;
     // дополнительные рассчитываемые величины
     points[solParam.NumCell-1].pressure = points[solParam.NumCell-1].density * (UniversalGasConstant/mixture.molarMass()) * points[solParam.NumCell-1].temp;
@@ -148,7 +157,8 @@ void AbstractSolver::UpdateBorderU()
         U1[0][i] = points[i].density;
         for(size_t j = j; j < mixture.NumberOfComponents; j++)
             U1[j][i] = points[i].densityArray[j];
-        U2[i] = points[i].density*points[i].velocity;
+        U2[i] = points[i].density*points[i].velocity_tau;
+        U2_normal[i] = points[i].density*points[i].velocity_normal;
         //U3[i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
         U3[i] = (3*points[i].pressure)/2 + 0.5*pow(points[i].velocity,2)*points[i].density;
     }

@@ -66,7 +66,7 @@ void HLLCSolver::computeF()
     for(size_t i = 0 ; i < solParam.NumCell-1; i++)
     {
         // Рассчитываем производные в точке i
-        double dv_dy = (points[i+1].velocity - points[i].velocity) / (delta_h);
+        double dv_dy = (points[i+1].velocity_tau - points[i].velocity_tau) / (delta_h);
         double dT_dy = (points[i+1].temp - points[i].temp) / (delta_h);
         vector<double> dy_dy(mixture.NumberOfComponents);
 
@@ -100,7 +100,7 @@ void HLLCSolver::computeF()
         {
             F3[i]+= - points[i+1].density * mixture.getEffDiff(j)*dy_dy[j] * mixture.getEntalp(i+1);
         }
-        F3[i] += -lambda*dT_dy - etta*points[i+1].velocity*dv_dy;
+        F3[i] += -lambda*dT_dy - etta*points[i+1].velocity_tau*dv_dy;
     }
 }
 
@@ -246,8 +246,8 @@ void HLLCSolver::updatePoints()
 {
     for(size_t i = 1; i < points.size()-1; i++)
     {
-        points[i].velocity = U2[i]/U1[0][i];
-        points[i].pressure = (U3[i] - pow(points[i].velocity,2)*0.5*U1[0][i])*(solParam.Gamma - 1);
+        points[i].velocity_tau = U2[i]/U1[0][i];
+        points[i].pressure = (U3[i] - pow(points[i].velocity_tau,2)*0.5*U1[0][i])*(solParam.Gamma - 1);
         points[i].density = U1[0][i];
         for(size_t j = 0; j < mixture.NumberOfComponents; j++)
         {

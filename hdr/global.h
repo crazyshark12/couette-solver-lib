@@ -48,7 +48,9 @@ struct macroParam
     vector<double> fractionArray; // в сумме должны давать 1
     double density      = 0;
     double pressure     = 0;
-    double velocity     = 0;
+    double velocity_tau     = 0;
+    double velocity_normal  = 0;
+    double velocity = 0;
     double temp         = 0;
     double tempIntr     = 0;
     double soundSpeed   = 0;

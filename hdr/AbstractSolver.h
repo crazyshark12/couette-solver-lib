@@ -66,11 +66,11 @@ protected:
     bool observerCheck(size_t currentIteration);
 
     //надо придумать название получше
-    Matrix U2, U3;
+    Matrix U2, U2_normal, U3;
     vector<Matrix> U1, R;        //U1[i] = i-ая компонента
 
     //надо придумать название получше
-    Matrix  F2, F3;
+    Matrix  F2,F2_normal, F3;
     vector<Matrix> F1;
 
     // хранит значение макропараметров в каждой ячейке

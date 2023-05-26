@@ -17,8 +17,12 @@ protected:
     // Расчет релаксационных членов
     void computeR();
 
-    // Расчет потоков на стыках ячеек методом HLLC
+    // Расчет потоков на стыках ячеек методом годунова
+
     macroParam ExacRiemanSolver(macroParam left, macroParam right, double Gamma);
+
+    // bool velocity_component: 0 - касательная, 1 - нормальная
+    macroParam ExacRiemanSolver(macroParam left, macroParam right, double Gamma, bool velocity_component);
 
     // обновляет вектор U
     void updateU();
