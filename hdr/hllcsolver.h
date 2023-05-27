@@ -32,7 +32,7 @@ protected:
 
 
     // Значения потока на границах ячеек по методу HLLC
-    Matrix  fluxF2, fluxF3;
+    Matrix  fluxF2, fluxF2_normal , fluxF3;
     vector<Matrix> fluxF1;
 
     //записывать ли данные в файл ?

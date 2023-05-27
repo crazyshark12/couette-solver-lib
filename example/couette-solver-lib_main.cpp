@@ -42,7 +42,7 @@ int main()
     double T2wall = 1000;
     double velocity = 300;
     double h = 1;
-    GodunovSolver solver(mixture,startParam,solParam);
+    HLLCSolver solver(mixture,startParam,solParam);
     writer.setDelta_h(h / solParam.NumCell);
     solver.setWriter(&writer);
     solver.setObserver(&watcher);
