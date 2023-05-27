@@ -1,6 +1,6 @@
 #include "hllcsolver.h"
 #include <algorithm>
-
+#include <functional>
 //HLLCSolver::HLLCSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_)
 //{
 //    mixture = mixture_;
@@ -22,7 +22,7 @@ void HLLCSolver::solve()
         // Вычисляем вектор поточных членов и релаксационных членов
         computeF();
         // HLLС
-        computeHllcF();
+        computeHlleF();
         // Вычисляем вектор релаксационных членов
         computeR();
 
@@ -125,6 +125,54 @@ void HLLCSolver::computeR()
     return;
 }
 
+void HLLCSolver::computeHlleF()
+{
+    for(size_t i = 0 ; i < solParam.NumCell-1; i++)
+    {
+        double H0, H1, c0, c1, u0, u1, v0,v1,V0,V1, rho0, rho1, u_avg,v_avg, H_avg, c_avg, b0, b1, b_plus, b_minus;
+
+        u0 = points[i].velocity_normal;
+        u1 = points[i+1].velocity_normal;
+
+        v0 = points[i].velocity_tau;
+        v1 = points[i+1].velocity_tau;
+
+        V0 = sqrt(pow(u0,2) + pow(v0,2));
+        V1 = sqrt(pow(u1,2) + pow(v1,2));
+
+//        H0 = (5*points[i].pressure)/(2*U1[0][i]) + pow(V0,2)/2;
+//        H1 = (5*points[i+1].pressure)/(2*U1[0][i+1])+ pow(V1,2)/2;
+        H0 = (U3[i] + points[i].pressure)/points[i].density;
+        H1 = (U3[i+1] + points[i+1].pressure)/points[i+1].density;
+
+        c0 = sqrt((solParam.Gamma - 1)*(H0 - 5 * pow(V0,2)));
+        c1 = sqrt((solParam.Gamma - 1)*(H1 - 5 * pow(V1,2)));
+
+        rho0 = sqrt(U1[0][i]);
+        rho1 = sqrt(U1[0][i+1]);
+
+        u_avg = (rho0 * u0 + rho1 * u1) / (rho0 + rho1);
+        v_avg = (rho0 * v0 + rho1 * v1) / (rho0 + rho1);
+
+        H_avg = (rho0 * H0 + rho1 * H1) / (rho0 + rho1);
+        c_avg = sqrt((solParam.Gamma - 1)*(H_avg - 5 * (pow(u_avg,2) + pow(v_avg,2))));
+
+        b0 = (std::min)({u_avg - c_avg, u0 - c0});
+        b1 = (std::max)({u_avg + c_avg, u1 + c1});
+
+        b_plus = (std::max)({0., b1});
+        b_minus = (std::min)({0., b0});
+
+        for(size_t j = 0; j < mixture.NumberOfComponents; j++)
+        {
+            fluxF1[j][i] = (b_plus * F1[j][i] - b_minus* F1[j][i+1])/(b_plus  - b_minus) + (b_plus * b_minus)/(b_plus - b_minus) * (U1[j][i+1] - U1[j][i]);
+        }
+        fluxF2[i] = (b_plus * F2[i] - b_minus* F2[i+1])/(b_plus  - b_minus) + (b_plus * b_minus)/(b_plus - b_minus) * (U2[i+1] - U2[i]);
+        fluxF2_normal[i] = (b_plus * F2_normal[i] - b_minus* F2_normal[i+1])/(b_plus  - b_minus) + (b_plus * b_minus)/(b_plus - b_minus) * (U2_normal[i+1] - U2_normal[i]);
+        fluxF3[i] = (b_plus * F3[i] - b_minus* F3[i+1])/(b_plus  - b_minus) + (b_plus * b_minus)/(b_plus - b_minus) * (U3[i+1] - U3[i]);
+    }
+}
+
 void HLLCSolver::computeHllcF()
 {
     for(size_t i = 0 ; i < solParam.NumCell-1; i++)
@@ -148,10 +196,10 @@ void HLLCSolver::computeHllcF()
         rho1 = sqrt(U1[0][i+1]);
 
         avg_v = (rho0 * u0 + rho1 * u1) / (rho0 + rho1);
-        H0 = (3*points[i].pressure)/(2*U1[0][i]);
-        H1 = (3*points[i+1].pressure)/(2*U1[0][i+1]);
-        //H0 = (U3[i] + points[i].pressure)/points[i].density;
-        //H1 = (U3[i+1] + points[i+1].pressure)/points[i+1].density;
+//        H0 = (3*points[i].pressure)/(2*U1[0][i]);
+//        H1 = (3*points[i+1].pressure)/(2*U1[0][i+1]);
+        H0 = (U3[i] + points[i].pressure)/points[i].density;
+        H1 = (U3[i+1] + points[i+1].pressure)/points[i+1].density;
         avg_H = (rho0 * H0 + rho1 * H1) / (rho0 + rho1);
         avg_a = sqrt((solParam.Gamma - 1)*(avg_H - 0.5 * pow(avg_v,2)));
         S0 = (avg_v - avg_a);
@@ -238,7 +286,6 @@ void HLLCSolver::computeHllcF()
         fluxF2_normal[i] = hllc_f2_normal;
         fluxF3[i] = hllc_f3;
     }
-    std::cout<<"--------------"<<std::endl;
     return;
 }
 
@@ -346,16 +393,17 @@ void HLLCSolver::updatePoints()
         points[i].velocity_tau = U2[i]/U1[0][i];
         points[i].velocity_normal = U2_normal[i]/U1[0][i];
         points[i].velocity = sqrt(pow(points[i].velocity_tau,2) + pow(points[i].velocity_normal,2));
+        points[i].density = U1[0][i];
+        points[i].temp = computeT(points[i],i);
+
 
         points[i].pressure = (U3[i] - pow(points[i].velocity,2)*0.5*U1[0][i])*(solParam.Gamma - 1);
-        points[i].density = U1[0][i];
         for(size_t j = 0; j < mixture.NumberOfComponents; j++)
         {
             points[i].densityArray[j] =  U1[j][i];
             points[i].fractionArray[j] = points[i].densityArray[j] / points[i].density;
         }
         points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
-        points[i].temp = computeT(points[i],i);
     }
     useBorder();
     UpdateBorderU();

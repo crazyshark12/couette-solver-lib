@@ -22,6 +22,9 @@ protected:
     // Расчет релаксационных членов
     void computeR();
 
+    // Расчет потоков на стыках ячеек методом HLLE
+    void computeHlleF();
+
     // Расчет потоков на стыках ячеек методом HLLC
     void computeHllcF();
 
