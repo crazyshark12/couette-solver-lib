@@ -109,7 +109,9 @@ void AbstractSolver::prepareVectors()
 
 void AbstractSolver::setDt()
 {
-    Matrix velocity = U2/U1[0];
+    Matrix velocity_tau = U2/U1[0];
+    Matrix velocity_normal = U2_normal/U1[0];
+    Matrix velocity = Matrix::POW( Matrix::POW(velocity_tau,2) + Matrix::POW(velocity_normal,2),0.5);
     auto pressure = (U3 - Matrix::POW(velocity,2)*0.5*U1[0])*(solParam.Gamma - 1);
     auto temp = velocity;
     auto max =*std::max_element(temp.begin(), temp.end());  // это нужно чтобы правильно подобрать временной шаг, чтобы соблюдался критерий КФЛ

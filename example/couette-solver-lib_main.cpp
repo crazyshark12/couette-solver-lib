@@ -27,7 +27,7 @@ int main()
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 1;    // Число Куранта
     solParam.MaxIter     = 1000000000; // максимальное кол-во шагов по времени
-    solParam.Ma       = 0.0;    // Число маха
+    solParam.Ma       = 0.5;    // Число маха
 
     double precision = 0.000001; // точность
     Observer watcher(precision);
