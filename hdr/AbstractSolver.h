@@ -10,11 +10,12 @@
 #include "bordercondition.h"
 #include "datawriter.h"
 #include "observer.h"
-
+#include "systemofequation.h"
+#include "riemannsolver.h"
 struct AbstractSolver
 {
 public:
-    AbstractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_);
+    AbstractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_, SystemOfEquationType type);
 
     // запускает процесс решения задачи
     virtual void solve() = 0;
@@ -34,12 +35,22 @@ public:
     // устанавливает наблюдателя, который будет следить за тем, чтобы рассчёт остановился, когда будет достигнута новая точность
     void setObserver(Observer* obs);
 
+    SystemOfEquation* system;
+
+    RiemannSolver* riemannSolver;
+
     Observer* observer;
+
     Mixture mixture;
+
     macroParam startParam;
+
     solverParams solParam;
+
     CoeffSolver coeffSolver;
+
     BorderCondition border;
+
     DataWriter* writer;
 
 protected:
@@ -51,10 +62,12 @@ protected:
     virtual void prepareSolving();
 
     //подготавливает размеры всех векторов
-    virtual void prepareVectors();
+    virtual void prepareVectorSizes();
 
     // устанавливает временной шаг
     void setDt();
+
+    void updatePoints();
 
     void useBorder();
     void UpdateBorderU();
@@ -65,13 +78,6 @@ protected:
     //функция для работы с наблюдателем, выдаёт true если нужно продолжать рассчёт
     bool observerCheck(size_t currentIteration);
 
-    //надо придумать название получше
-    Matrix U2, U2_normal, U3;
-    vector<Matrix> U1, R;        //U1[i] = i-ая компонента
-
-    //надо придумать название получше
-    Matrix  F2,F2_normal, F3;
-    vector<Matrix> F1;
 
     // хранит значение макропараметров в каждой ячейке
     vector<macroParam> points;

@@ -9,26 +9,32 @@ set(HDR_FOLDER "${PROJECT_SOURCE_DIR}/hdr")
 
 
 set(${PROJECT_NAME}_SRC  ${SRC_FOLDER}/abstractsolver.cpp
-                         ${SRC_FOLDER}/hllcsolver.cpp
+                         #${SRC_FOLDER}/hllcsolver.cpp
                          ${SRC_FOLDER}/godunovsolver.cpp
+                         ${SRC_FOLDER}/godunovsolversoda.cpp
 			 ${SRC_FOLDER}/coeffsolver.cpp
-                         ${SRC_FOLDER}/additionalsolver.cpp
+                         #${SRC_FOLDER}/additionalsolver.cpp
                          ${SRC_FOLDER}/mixture.cpp
                          ${SRC_FOLDER}/bordercondition.cpp
                          ${SRC_FOLDER}/datawriter.cpp
                          ${SRC_FOLDER}/observer.cpp
+                         ${SRC_FOLDER}/systemofequation.cpp
+                         ${SRC_FOLDER}/riemannsolver.cpp
 )
 
 set(${PROJECT_NAME}_HDR  ${HDR_FOLDER}/abstractsolver.h
-                         ${HDR_FOLDER}/hllcsolver.h
+                         #${HDR_FOLDER}/hllcsolver.h
                          ${HDR_FOLDER}/godunovsolver.h
+                         ${HDR_FOLDER}/godunovsolversoda.h
                          ${HDR_FOLDER}/coeffsolver.h
-                         ${HDR_FOLDER}/additionalsolver.h
+                         #${HDR_FOLDER}/additionalsolver.h
                          ${HDR_FOLDER}/global.h    
                          ${HDR_FOLDER}/mixture.h
                          ${HDR_FOLDER}/bordercondition.h
                          ${HDR_FOLDER}/datawriter.h
                          ${HDR_FOLDER}/observer.h
+                         ${HDR_FOLDER}/systemofequation.h
+                         ${HDR_FOLDER}/riemannsolver.h
 )
 
 add_subdirectory(example)

@@ -22,7 +22,7 @@ void HLLCSolver::solve()
         // Вычисляем вектор поточных членов и релаксационных членов
         computeF();
         // HLLС
-        computeHlleF();
+        computeHllcF();
         // Вычисляем вектор релаксационных членов
         computeR();
 

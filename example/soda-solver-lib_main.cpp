@@ -1,6 +1,6 @@
 //#include "hllcsolver.h"
-#include "godunovsolver.h"
-#include "DataWriter.h"
+#include "godunovsolversoda.h"
+#include "datawriter.h"
 #include "observer.h"
 #include <filesystem>
 
@@ -23,10 +23,10 @@ int main()
     startParam.temp = 273; //140
 
     solverParams solParam;
-    solParam.NumCell     = 50;    // Число расчтеных ячеек
-    solParam.Gamma    = 1.67;    // Показатель адиабаты
-    solParam.CFL      = 1;    // Число Куранта
-    solParam.MaxIter     = 1000000000; // максимальное кол-во шагов по времени
+    solParam.NumCell     = 100;    // Число расчтеных ячеек
+    solParam.Gamma    = 1.4;    // Показатель адиабаты
+    solParam.CFL      = 0.8;    // Число Куранта
+    solParam.MaxIter     = 100; // максимальное кол-во шагов по времени
     solParam.Ma       = 0.5;    // Число маха
 
     double precision = 0.000001; // точность
@@ -38,15 +38,20 @@ int main()
     // он автоматически очищает папку перед новым рассчётом
     DataWriter writer("D:/couette/couette-solver-lib");
 
-    double T1wall = 1000;
-    double T2wall = 1000;
-    double velocity = 300;
-    double h = 1;
-    GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2);
-    writer.setDelta_h(h / solParam.NumCell);
-    solver.setWriter(&writer);
-    solver.setObserver(&watcher);
+    BorderConditionSoda borderSoda;
+    borderSoda.leftDensity = 1;
+    borderSoda.leftPressure = 1;
+    borderSoda.leftVelocity = 0;
+    borderSoda.rightDensity = 0.125;
+    borderSoda.rightPressure = 0.1;
+    borderSoda.rightVelocity = 0;
+
+    double h = 1.;
+
+    GodunovSolverSoda solver(mixture,startParam,solParam, SystemOfEquationType::soda);
     solver.setDelta_h(h / solParam.NumCell);
-    solver.setBorderConditions(velocity,T2wall,T1wall);
+    //solver.setWriter(&writer);
+    //solver.setObserver(&watcher);
+    solver.setBorderConditions(borderSoda);
     solver.solve();
 }

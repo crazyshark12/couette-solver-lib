@@ -12,16 +12,17 @@ void GodunovSolver::solve()
         setDt();
         T += timeSolvind.last();
 
-        // FluxF1,2,3
-        computeFluxF();
+        system->computeF(points, delta_h);
+        riemannSolver->computeFlux(system);
         // Вычисляем вектор релаксационных членов
         //computeR();
 
         // Обновляем вектор U
-        updateU();
-
+        system->updateU(delta_h,timeSolvind.last());
         // Обновляем вектор макропараметров
         updatePoints();
+        // обновляем вектор U с учётом граничных условий
+        system->updateBorderU(points);
 
         //записать данные, если это требуется
         //writePoints(T*1000000); // микросек
@@ -42,70 +43,70 @@ void GodunovSolver::solve()
     writePoints(T*1000000);
 }
 
-void GodunovSolver::prepareVectors()
-{
-    AbstractSolver::prepareVectors();
-    rezultAfterPStart.resize(solParam.NumCell - 1);
-}
+//void GodunovSolver::prepareVectors()
+//{
+//    AbstractSolver::prepareVectors();
+//    rezultAfterPStart.resize(solParam.NumCell - 1);
+//}
 
-void GodunovSolver::computeFluxF()
-{
-    //#pragma omp parallel for schedule(static)
-    for(size_t i =0; i < solParam.NumCell-1; i++)
-    {
-        rezultAfterPStart[i] = ExacRiemanSolver(points[i],points[i+1],solParam.Gamma, 1);
-        auto tmp = ExacRiemanSolver(points[i],points[i+1],solParam.Gamma, 0);
-        rezultAfterPStart[i].velocity_tau = tmp.velocity_tau;
-        rezultAfterPStart[i].velocity = sqrt(std::pow(rezultAfterPStart[i].velocity_normal,2) + std::pow(rezultAfterPStart[i].velocity_tau,2));
-        rezultAfterPStart[i].densityArray[0] = rezultAfterPStart[i].density;
-    }
+//void GodunovSolver::computeFluxF()
+//{
+//    //#pragma omp parallel for schedule(static)
+//    for(size_t i =0; i < solParam.NumCell-1; i++)
+//    {
+//        rezultAfterPStart[i] = ExacRiemanSolver(points[i],points[i+1],solParam.Gamma, 1);
+//        auto tmp = ExacRiemanSolver(points[i],points[i+1],solParam.Gamma, 0);
+//        rezultAfterPStart[i].velocity_tau = tmp.velocity_tau;
+//        rezultAfterPStart[i].velocity = sqrt(std::pow(rezultAfterPStart[i].velocity_normal,2) + std::pow(rezultAfterPStart[i].velocity_tau,2));
+//        rezultAfterPStart[i].densityArray[0] = rezultAfterPStart[i].density;
+//    }
 
-    //#pragma omp parallel for schedule(static)
-    for(size_t i =0; i < solParam.NumCell-1; i++)
-    {
-        auto point = rezultAfterPStart[i];
-        double T = point.pressure/(point.density*UniversalGasConstant/point.mixture.molarMass());
-        double etta = coeffSolver.shareViscositySimple(point,T);
-        double lambda = coeffSolver.lambda(point,T);
-        double bulk = coeffSolver.bulcViscositySimple(mixture,T, point.density, point.pressure);
+//    //#pragma omp parallel for schedule(static)
+//    for(size_t i =0; i < solParam.NumCell-1; i++)
+//    {
+//        auto point = rezultAfterPStart[i];
+//        double T = point.pressure/(point.density*UniversalGasConstant/point.mixture.molarMass());
+//        double etta = coeffSolver.shareViscositySimple(point,T);
+//        double lambda = coeffSolver.lambda(point,T);
+//        double bulk = coeffSolver.bulcViscositySimple(mixture,T, point.density, point.pressure);
 
-        // Рассчитываем производные в точке i
+//        // Рассчитываем производные в точке i
 
-        double dv_tau_dy = (points[i+1].velocity_tau - points[i].velocity_tau) / (delta_h);
-        double dv_normal_dy = (points[i+1].velocity_normal - points[i].velocity_normal) / (delta_h);
+//        double dv_tau_dy = (points[i+1].velocity_tau - points[i].velocity_tau) / (delta_h);
+//        double dv_normal_dy = (points[i+1].velocity_normal - points[i].velocity_normal) / (delta_h);
 
 
-        double dT_dy = (points[i+1].temp - points[i].temp) / (delta_h);
-        vector<double> dy_dy(mixture.NumberOfComponents);
+//        double dT_dy = (points[i+1].temp - points[i].temp) / (delta_h);
+//        vector<double> dy_dy(mixture.NumberOfComponents);
 
-        //учёт граничных условий
-        if(i == 0 || i == solParam.NumCell-1)
-            fill(dy_dy.begin(), dy_dy.end(),border.get_dyc_dy());
-        else
-        {
-            for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
-            {
-                dy_dy[j] = (points[i+1].fractionArray[j] - points[i].fractionArray[j])/ (delta_h);
-            }
-        }
-        //заполнение вектора потоков
-        for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
-        {
-            if(j!=0)
-                F1[j][i] = -point.density * mixture.getEffDiff(j) * dy_dy[j];
-            else
-                F1[j][i] = point.density * point.velocity_normal;
-        }
-        F2[i] = point.density * point.velocity_tau * point.velocity_normal  -etta * dv_tau_dy;
-        F2_normal[i] = point.density *pow(point.velocity_normal,2) + point.pressure - (bulk + 4/3*etta)* dv_normal_dy;
-        F3[i] = 0;
-        for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
-        {
-            F3[i]+= - point.density * mixture.getEffDiff(j)*dy_dy[j] * mixture.getEntalp(i);
-        }
-        F3[i] += -lambda*dT_dy - etta*point.velocity_tau*dv_tau_dy + (point.pressure - (bulk + 4/3*etta)* dv_normal_dy) * point.velocity_normal;
-    }
-}
+//        //учёт граничных условий
+//        if(i == 0 || i == solParam.NumCell-1)
+//            fill(dy_dy.begin(), dy_dy.end(),border.get_dyc_dy());
+//        else
+//        {
+//            for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
+//            {
+//                dy_dy[j] = (points[i+1].fractionArray[j] - points[i].fractionArray[j])/ (delta_h);
+//            }
+//        }
+//        //заполнение вектора потоков
+//        for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
+//        {
+//            if(j!=0)
+//                F1[j][i] = -point.density * mixture.getEffDiff(j) * dy_dy[j];
+//            else
+//                F1[j][i] = point.density * point.velocity_normal;
+//        }
+//        F2[i] = point.density * point.velocity_tau * point.velocity_normal  -etta * dv_tau_dy;
+//        F2_normal[i] = point.density *pow(point.velocity_normal,2) + point.pressure - (bulk + 4/3*etta)* dv_normal_dy;
+//        F3[i] = 0;
+//        for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
+//        {
+//            F3[i]+= - point.density * mixture.getEffDiff(j)*dy_dy[j] * mixture.getEntalp(i);
+//        }
+//        F3[i] += -lambda*dT_dy - etta*point.velocity_tau*dv_tau_dy + (point.pressure - (bulk + 4/3*etta)* dv_normal_dy) * point.velocity_normal;
+//    }
+//}
 
 macroParam GodunovSolver::ExacRiemanSolver(macroParam left, macroParam right, double Gamma)
 {
@@ -526,41 +527,3 @@ macroParam GodunovSolver::ExacRiemanSolver(macroParam left, macroParam right, do
     return ret;
 }
 
-void GodunovSolver::updateU()
-{
-    for(auto i  = 1; i < solParam.NumCell-1; i++)
-    {
-        for (int j = 0; j < mixture.NumberOfComponents; j++)
-        {
-            U1[j][i] += (/*R[j][i]*/0 - (F1[j][i] - F1[j][i - 1]) / delta_h) * timeSolvind.last();
-        }
-        U2[i] += (0 - (F2[i] - F2[i - 1]) / delta_h) * timeSolvind.last();
-        U2_normal[i] += (0 - (F2_normal[i] - F2_normal[i - 1]) / delta_h) * timeSolvind.last();
-        U3[i] += (0 - (F3[i] - F3[i - 1]) / delta_h) * timeSolvind.last();
-    }
-}
-
-void GodunovSolver::updatePoints()
-{
-    auto size = points.size()-1;
-    #pragma omp parallel for schedule(static)
-    for(size_t i = 1; i < size; i++)
-    {
-        points[i].velocity_tau = U2[i]/U1[0][i];
-        points[i].velocity_normal = U2_normal[i]/U1[0][i];
-        points[i].velocity = sqrt(pow(points[i].velocity_tau,2)+pow(points[i].velocity_normal,2) );
-        points[i].density = U1[0][i];
-        points[i].pressure = (U3[i] - pow(points[i].velocity,2)*0.5*U1[0][i])*2/3;
-
-        for(size_t j = 0; j < mixture.NumberOfComponents; j++)
-        {
-            points[i].densityArray[j] =  U1[j][i];
-            points[i].fractionArray[j] = points[i].densityArray[j] / points[i].density;
-        }
-        points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
-        points[i].temp = computeT(points[i],i);
-    }
-    useBorder();
-    UpdateBorderU();
-    return;
-}

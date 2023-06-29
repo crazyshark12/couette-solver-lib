@@ -3,16 +3,16 @@
 #include "abstractsolver.h"
 struct GodunovSolver: public AbstractSolver
 {
-    GodunovSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_):AbstractSolver(mixture_,startParam_,solParam_){};
+    GodunovSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_, SystemOfEquationType type):AbstractSolver(mixture_,startParam_,solParam_, type){};
 
     // запускает процесс решения задачи
     void solve();
 
 protected:
 
-    void prepareVectors();
+    //void prepareVectors();
 
-    void computeFluxF();
+    //void computeFluxF();
 
     // Расчет релаксационных членов
     void computeR();
@@ -26,9 +26,6 @@ protected:
 
     // обновляет вектор U
     void updateU();
-
-    // обновлеяет вектор макропараметров с помощью U
-    void updatePoints();
 
 
     double shareViscositySimple(double currentT);
