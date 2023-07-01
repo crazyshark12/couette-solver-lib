@@ -21,6 +21,7 @@ struct SystemOfEquation
     virtual double getVelocity(size_t i) = 0;
     virtual double getVelocityTau(size_t i) = 0;
     virtual double getVelocityNormal(size_t i) = 0;
+    virtual double getSoundSpeed(size_t i) = 0;
     virtual double getEnergy(size_t i) = 0;
     virtual double getTemp(size_t i) = 0;
 
@@ -65,6 +66,7 @@ struct Couette2 : public SystemOfEquation
     double getVelocity(size_t i);
     double getVelocityTau(size_t i);
     double getVelocityNormal(size_t i);
+    double getSoundSpeed(size_t i){};
     double getEnergy(size_t i);
     double getTemp(size_t i);
 
@@ -88,6 +90,7 @@ struct Soda : public SystemOfEquation
     double getVelocity(size_t i);
     double getVelocityTau(size_t i);
     double getVelocityNormal(size_t i);
+    double getSoundSpeed(size_t i);
     double getEnergy(size_t i);
     double getTemp(size_t i){};
 

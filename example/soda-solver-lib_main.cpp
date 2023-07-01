@@ -26,7 +26,7 @@ int main()
     solParam.NumCell     = 100;    // Число расчтеных ячеек
     solParam.Gamma    = 1.4;    // Показатель адиабаты
     solParam.CFL      = 0.8;    // Число Куранта
-    solParam.MaxIter     = 100; // максимальное кол-во шагов по времени
+    solParam.MaxIter     = 1000; // максимальное кол-во шагов по времени
     solParam.Ma       = 0.5;    // Число маха
 
     double precision = 0.000001; // точность
@@ -46,11 +46,11 @@ int main()
     borderSoda.rightPressure = 0.1;
     borderSoda.rightVelocity = 0;
 
-    double h = 1.;
+    double h = 1;
 
     GodunovSolverSoda solver(mixture,startParam,solParam, SystemOfEquationType::soda);
     solver.setDelta_h(h / solParam.NumCell);
-    //solver.setWriter(&writer);
+    solver.setWriter(&writer);
     //solver.setObserver(&watcher);
     solver.setBorderConditions(borderSoda);
     solver.solve();

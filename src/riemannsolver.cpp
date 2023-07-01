@@ -1,6 +1,7 @@
 #include "riemannsolver.h"
 
 #include <algorithm>
+const double gamma = 1.4;
 void HLLCSolver::computeFlux(SystemOfEquation *system)
 {
     for(size_t i = 0 ; i < system->Flux.size(); i++)
@@ -161,6 +162,35 @@ void HLLSimple::computeFlux(SystemOfEquation *system, double dt, double dh)
             UR = system->U[j][i+1];
             UL = system->U[j][i];
             system->Flux[j][i] = (SR*FL - SL*FR + SL*SR * (UR - UL))/(SR - SL);
+        }
+    }
+}
+
+void HLLIsentropic::computeFlux(SystemOfEquation *system)
+{
+    for(size_t i = 0 ; i < system->numberOfCells - 1; i++)
+    {
+        double u_star, a_star,ul,ur,al,ar,SR, SL, FL, FR, UL, UR;
+        ul = system->getVelocity(i);
+        ur = system->getVelocity(i+1);
+        al = system->getSoundSpeed(i);
+        ar = system->getSoundSpeed(i+1);
+        u_star = 1/2*(ul-ur) + (al - ar)/(gamma - 1);
+        a_star = 1/2*(al + ar) + 1/4 *(gamma - 1)*(ul-ur);
+        SL = std::min({ul - al, u_star - a_star});
+        SR = std::max({ur + ar, u_star + a_star});
+        for(size_t j = 0; j < system->systemOrder; j++)
+        {
+            FR = system->F[j][i+1];
+            FL = system->F[j][i];
+            UR = system->U[j][i+1];
+            UL = system->U[j][i];
+            if(SL >= 0 )
+                system->Flux[j][i] = FL;
+            else if( SR <= 0)
+                system->Flux[j][i] = FR;
+            else
+                system->Flux[j][i] = (SR*FL - SL*FR + SL*SR * (UR - UL))/(SR - SL);
         }
     }
 }

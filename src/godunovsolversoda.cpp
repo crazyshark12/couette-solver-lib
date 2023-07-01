@@ -1,6 +1,7 @@
 #include "godunovsolversoda.h"
 #include <iostream>
 #include <omp.h>
+#include <typeinfo.h>
 void GodunovSolverSoda::solve()
 {
     prepareSolving();
@@ -8,12 +9,17 @@ void GodunovSolverSoda::solve()
     double T = 0;
     for(size_t i  = 0; i < solParam.MaxIter; i++)
     {
+        if(i == 7)
+            double x  = 3 ;
         // Устанавливаем текущий временной шаг
         setDt();
         T += timeSolvind.last();
 
         system->computeF(points, delta_h);
+
+        //riemannSolver->computeFlux(system);
         riemannSolver->computeFlux(system,timeSolvind.last(), delta_h);
+
         // Вычисляем вектор релаксационных членов
         //computeR();
 
@@ -21,18 +27,18 @@ void GodunovSolverSoda::solve()
         system->updateU(delta_h,timeSolvind.last());
         // Обновляем вектор макропараметров
         updatePoints();
-//        if(i == 40)
-//        {
-//            for(size_t k = 0; k < points.size(); k++)
-//            {
-//                std::cout<<points[k].velocity<<" ";
-//            }
-//            std::cout<<std::endl<<std::endl;
-//            for(size_t k = 0; k < points.size(); k++)
-//            {
-//                std::cout<<points[k].density<<" ";
-//            }
-//        }
+        if(i == 40)
+        {
+            for(size_t k = 0; k < points.size(); k++)
+            {
+                std::cout<<points[k].velocity<<" ";
+            }
+            std::cout<<std::endl<<std::endl;
+            for(size_t k = 0; k < points.size(); k++)
+            {
+                std::cout<<points[k].density<<" ";
+            }
+        }
 
 
         //записать данные, если это требуется
@@ -40,7 +46,7 @@ void GodunovSolverSoda::solve()
         if(i%1 == 0)
         {
             std::cout<<i<<" iteration"<<std::endl;
-            writePoints(T*1); // микросек
+            writePoints(i); // микросек
         }
 
         //проверка точности
@@ -65,6 +71,7 @@ void GodunovSolverSoda::prepareSolving()
         points[i].velocity_tau = borderSoda.leftVelocity;
         points[i].velocity_normal = 0;
         points[i].velocity = borderSoda.leftVelocity;
+        points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
     }
     for(size_t i = points.size()/2; i < points.size(); i++)
     {
@@ -74,6 +81,7 @@ void GodunovSolverSoda::prepareSolving()
         points[i].velocity_tau = borderSoda.rightVelocity;
         points[i].velocity_normal = 0;
         points[i].velocity = borderSoda.rightVelocity;
+        points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
     }
     system->prepareSolving(points);
 }
@@ -83,11 +91,14 @@ void GodunovSolverSoda::updatePoints()
     auto size = points.size();
     for(size_t i = 0; i < size; i++)
     {
+        if(i==49)
+            double x = 0;
         points[i].velocity_tau = system->getVelocityTau(i);
         points[i].velocity_normal = system->getVelocityNormal(i);
         points[i].velocity = system->getVelocity(i);
         points[i].density = system->getDensity(i);
         points[i].pressure = system->getPressure(i);
+        points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
     }
 }
 

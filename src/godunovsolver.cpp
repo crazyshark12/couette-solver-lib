@@ -29,7 +29,7 @@ void GodunovSolver::solve()
         if(i%1 == 0)
         {
             std::cout<<i<<" iteration"<<std::endl;
-            writePoints(T*1); // микросек
+            writePoints(T); // микросек
         }
 
         //проверка точности

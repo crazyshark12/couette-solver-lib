@@ -97,10 +97,12 @@ void AbstractSolver::prepareVectorSizes()
 void AbstractSolver::setDt()
 {
     double max = system->getMaxVelocity();  // это нужно чтобы правильно подобрать временной шаг, чтобы соблюдался критерий КФЛ
-    if(max==0)
-        max = 1;
-    double dt = solParam.CFL*pow(delta_h,1)/max;
-    dt = 0.001;
+    double dt;
+    if(max!=0)
+        dt = solParam.CFL*pow(delta_h,1)/max;
+    else
+        dt = 0.0008;
+
     timeSolvind.push_back(dt);
     //timeSolvind.push_back(0.00001);
     return;
@@ -112,6 +114,8 @@ void AbstractSolver::updatePoints()
     #pragma omp parallel for schedule(static)
     for(size_t i = 1; i < size; i++)
     {
+        if(i == 50)
+            double x = 50;
         points[i].velocity_tau = system->getVelocityTau(i);
         points[i].velocity_normal = system->getVelocityNormal(i);
         points[i].velocity = system->getVelocity(i);

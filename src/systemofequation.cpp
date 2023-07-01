@@ -33,7 +33,7 @@ double SystemOfEquation::getMaxVelocity()
     double res = 0;
     for(size_t i = 0; i < numberOfCells; i++)
     {
-        double tmp = getVelocity(i);
+        double tmp = abs(getVelocity(i));
         if(res < tmp)
         {
             res = tmp;
@@ -237,8 +237,8 @@ void Soda::prepareSolving(vector<macroParam> &points)
     for(auto i  = 0; i < numberOfCells; i++)
     {
         U[0][i] = points[i].density;
-        U[v_tau][i] = points[i].density*points[i].velocity_tau;
-        double e = points[i].pressure/(gamma -1) / points[i].density;
+        U[v_tau][i] = points[i].density*points[i].velocity;
+        double e = points[i].pressure/((gamma - 1) * points[i].density);
         U[energy][i] = points[i].density*0.5*pow(points[i].velocity,2) + points[i].density*e;
     }
 }
@@ -255,7 +255,7 @@ void Soda::prepareIndex()
 double Soda::getPressure(size_t i)
 {
     double rho = getDensity(i);
-    return (getEnergy(i) - 0.5 *rho* pow(getVelocity(i),2)) * (gamma - 1);
+    return ((getEnergy(i) - 0.5 * rho * pow(getVelocity(i),2)) * (gamma - 1));
 
 }
 
@@ -277,6 +277,11 @@ double Soda::getVelocityTau(size_t i)
 double Soda::getVelocityNormal(size_t i)
 {
     return 0;
+}
+
+double Soda::getSoundSpeed(size_t i)
+{
+    return sqrt(gamma * getPressure(i)/ getDensity(i));
 }
 
 double Soda::getEnergy(size_t i)
