@@ -17,8 +17,8 @@ void GodunovSolverSoda::solve()
 
         system->computeF(points, delta_h);
 
-        //riemannSolver->computeFlux(system);
-        riemannSolver->computeFlux(system,timeSolvind.last(), delta_h);
+        riemannSolver->computeFlux(system);
+        //riemannSolver->computeFlux(system,timeSolvind.last(), delta_h);
 
         // Вычисляем вектор релаксационных членов
         //computeR();
@@ -27,18 +27,18 @@ void GodunovSolverSoda::solve()
         system->updateU(delta_h,timeSolvind.last());
         // Обновляем вектор макропараметров
         updatePoints();
-        if(i == 40)
-        {
-            for(size_t k = 0; k < points.size(); k++)
-            {
-                std::cout<<points[k].velocity<<" ";
-            }
-            std::cout<<std::endl<<std::endl;
-            for(size_t k = 0; k < points.size(); k++)
-            {
-                std::cout<<points[k].density<<" ";
-            }
-        }
+//        if(i == 40)
+//        {
+//            for(size_t k = 0; k < points.size(); k++)
+//            {
+//                std::cout<<points[k].velocity<<" ";
+//            }
+//            std::cout<<std::endl<<std::endl;
+//            for(size_t k = 0; k < points.size(); k++)
+//            {
+//                std::cout<<points[k].density<<" ";
+//            }
+//        }
 
 
         //записать данные, если это требуется

@@ -15,7 +15,7 @@
 struct AbstractSolver
 {
 public:
-    AbstractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_, SystemOfEquationType type);
+    AbstractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_, SystemOfEquationType type, RiemannSolverType riemannType);
 
     // запускает процесс решения задачи
     virtual void solve() = 0;

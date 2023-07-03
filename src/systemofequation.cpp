@@ -255,7 +255,7 @@ void Soda::prepareIndex()
 double Soda::getPressure(size_t i)
 {
     double rho = getDensity(i);
-    return ((getEnergy(i) - 0.5 * rho * pow(getVelocity(i),2)) * (gamma - 1));
+    return ((getEnergy(i) - 0.5 * rho* pow(getVelocity(i),2)) * (gamma - 1));
 
 }
 

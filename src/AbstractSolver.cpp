@@ -2,7 +2,7 @@
 
 #include "abstractsolver.h"
 
-AbstractSolver::AbstractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_, SystemOfEquationType type)
+AbstractSolver::AbstractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_, SystemOfEquationType type, RiemannSolverType riemannType)
 {
     mixture = mixture_;
     startParam=startParam_;
@@ -18,7 +18,34 @@ AbstractSolver::AbstractSolver(Mixture mixture_, macroParam startParam_, solverP
         auto *tmp = new Soda();
         system = tmp;
     }
-    riemannSolver = new HLLSimple();
+    switch(riemannType)
+    {
+    case RiemannSolverType::HLLCSolver:
+        {
+                riemannSolver = new struct HLLCSolver();
+                break;
+        }
+    case RiemannSolverType::HLLESolver:
+        {
+                riemannSolver = new struct HLLESolver();
+                break;
+        }
+    case RiemannSolverType::HLLIsentropic:
+        {
+                riemannSolver = new struct HLLIsentropic();
+                break;
+        }
+    case RiemannSolverType::HLLSimple:
+        {
+                riemannSolver = new struct HLLSimple();
+                break;
+        }
+    case RiemannSolverType::ExacRiemanSolver:
+        {
+                riemannSolver = new struct ExacRiemanSolver();
+                break;
+        }
+    }
     system->setBorderCondition(&border);
     system->setCoeffSolver(&coeffSolver);
     system->setMixture(mixture);
@@ -101,8 +128,8 @@ void AbstractSolver::setDt()
     if(max!=0)
         dt = solParam.CFL*pow(delta_h,1)/max;
     else
-        dt = 0.0008;
-
+        dt = 0.001;
+    dt = 0.001; // тут фиксированный шаг
     timeSolvind.push_back(dt);
     //timeSolvind.push_back(0.00001);
     return;

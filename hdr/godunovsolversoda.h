@@ -3,7 +3,8 @@
 #include "abstractsolver.h"
 struct GodunovSolverSoda: public AbstractSolver
 {
-    GodunovSolverSoda(Mixture mixture_, macroParam startParam_, solverParams solParam_, SystemOfEquationType type):AbstractSolver(mixture_,startParam_,solParam_, type){};
+    GodunovSolverSoda(Mixture mixture_, macroParam startParam_, solverParams solParam_, SystemOfEquationType type,RiemannSolverType riemannType):
+        AbstractSolver(mixture_,startParam_,solParam_, type,riemannType){};
 
     // запускает процесс решения задачи
     void solve();
