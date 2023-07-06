@@ -4,7 +4,7 @@
 const double gamma = 1.4;
 void HLLCSolver::computeFlux(SystemOfEquation *system)
 {
-    for(size_t i = 0 ; i < system->Flux.size(); i++)
+    for(size_t i = 0 ; i < system->numberOfCells-1; i++)
     {
         double u0, u1,v0,v1,a0,a1, rho0, rho1, p0, p1, E0, E1, H0 , H1, avg_H, S0 , S1, S_star;
         vector<double> U_star_0(system->systemOrder),U_star_1(system->systemOrder);
@@ -101,7 +101,7 @@ void HLLCSolver::computeFlux(SystemOfEquation *system)
 void HLLESolver::computeFlux(SystemOfEquation *system)
 {
     double gamma = 5./3.;
-    for(size_t i = 0 ; i < system->Flux.size(); i++)
+    for(size_t i = 0 ; i < system->numberOfCells-1; i++)
     {
         double H0, H1, c0, c1, u0, u1, v0,v1,V0,V1, rho0, rho1, u_avg,v_avg, H_avg, c_avg, b0, b1, b_plus, b_minus;
 
@@ -119,8 +119,8 @@ void HLLESolver::computeFlux(SystemOfEquation *system)
         H0 = system->getEnergy(i) + system->getPressure(i)/system->getDensity(i);
         H1 = system->getEnergy(i+1) + system->getPressure(i+1)/system->getDensity(i+1);
 
-        c0 = sqrt((gamma - 1)*(H0 - 5. * pow(V0,2))); // TODO 5/3 = gamma
-        c1 = sqrt((gamma - 1)*(H1 - 5. * pow(V1,2)));
+        c0 = sqrt((gamma - 1)*(H0 - 0.5 * pow(V0,2))); // TODO 5/3 = gamma
+        c1 = sqrt((gamma - 1)*(H1 - 0.5 * pow(V1,2)));
 
         rho0 = sqrt(system->getDensity(i));
         rho1 = sqrt(system->getDensity(i+1));
@@ -129,7 +129,7 @@ void HLLESolver::computeFlux(SystemOfEquation *system)
         v_avg = (rho0 * v0 + rho1 * v1) / (rho0 + rho1);
 
         H_avg = (rho0 * H0 + rho1 * H1) / (rho0 + rho1);
-        c_avg = sqrt((gamma)*(H_avg - 5 * (pow(u_avg,2) + pow(v_avg,2)))); // TODO 5/3 = gamma
+        c_avg = sqrt((gamma)*(H_avg - 0.5 * (pow(u_avg,2) + pow(v_avg,2)))); // TODO 5/3 = gamma
 
         b0 = (std::min)({u_avg - c_avg, u0 - c0});
         b1 = (std::max)({u_avg + c_avg, u1 + c1});
@@ -139,8 +139,7 @@ void HLLESolver::computeFlux(SystemOfEquation *system)
 
         for(size_t j = 0; j < system->systemOrder; j++)
         {
-            system->Flux[j][i] = (b_plus * system->F[j][i] - b_minus* system->F[j][i+1])/(b_plus  - b_minus)
-                               + (b_plus * b_minus)/(b_plus - b_minus) * (system->U[j][i+1] - system->U[j][i]);
+            system->Flux[j][i] = (b_plus * system->F[j][i] - b_minus* system->F[j][i+1])/(b_plus  - b_minus) + (b_plus * b_minus)/(b_plus - b_minus) * (system->U[j][i+1] - system->U[j][i]);
         }
     }
 }
@@ -417,4 +416,47 @@ macroParam ExacRiemanSolver::exacRiemanSolver(macroParam left, macroParam right,
         }
     }
     return ret;
+}
+
+void HLLESolverSimen::computeFlux(SystemOfEquation *system)
+{
+    for(size_t i = 0; i < system->numberOfCells-1; i++)
+    {
+        // Временные переменные
+        double f_hlle, f0, f1, u0, u1, a0, a1, v0, v1, rho0, rho1, avg_k;
+        double b0, b1, eta, avg_a, avg_v;
+
+        // Забираем известные макропараметры в (.)-ах [i], [i+1]
+        a0 = pow(system->getSoundSpeed(i),2);
+        a1 = pow(system->getSoundSpeed(i+1),2);
+        v0 = system->getVelocity(i);
+        v1 = system->getVelocity(i+1);
+        rho0 = sqrt(system->getDensity(i));
+        rho1 = sqrt(system->getDensity(i+1));
+        avg_v = (rho0 * v0 + rho1 * v1) / (rho0 + rho1);
+        avg_k = gamma;  // у cИмена было так: 0.5 * (k[i] + k[i + 1]);
+
+        for (size_t j = 0; j < system->systemOrder; j++)
+        {
+            // Забираем известные макропараметры в (.)-ах [i], [i+1]
+            f0 = system->F[j][i];
+            f1 = system->F[j][i + 1];
+            u0 = system->U[j][i];
+            u1 = system->U[j][i + 1];
+
+            // Расчитываем сигнальные скорости
+            eta = (avg_k - 1.0) / 2.0 * rho0 * rho1 / pow(rho0 + rho1, 2.0);
+            avg_a = sqrt((rho0 * a0 + rho1 * a1) / (rho0 + rho1) +
+                          eta * pow(v1 - v0, 2.0));
+            avg_v = (rho0 * v0 + rho1 * v1) / (rho0 + rho1);
+
+            // Расчет потока на стыке ячеек
+            b0 = std::min(avg_v - avg_a, 0.0);
+            b1 = std::max(avg_v + avg_a, 0.0);
+            f_hlle = (b1 * f0 - b0 * f1 + b1 * b0 * (u1 - u0)) / (b1 - b0);
+
+            // Обновляем значение [j] вектора поточных членов в (.) [i-1]
+            system->Flux[j][i] = f_hlle;
+        }
+    }
 }

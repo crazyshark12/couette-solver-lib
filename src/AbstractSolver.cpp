@@ -45,6 +45,11 @@ AbstractSolver::AbstractSolver(Mixture mixture_, macroParam startParam_, solverP
                 riemannSolver = new struct ExacRiemanSolver();
                 break;
         }
+    case RiemannSolverType::HLLESolverSimen:
+        {
+                riemannSolver = new struct HLLESolverSimen();
+                break;
+        }
     }
     system->setBorderCondition(&border);
     system->setCoeffSolver(&coeffSolver);

@@ -4,11 +4,12 @@
 #include "systemofequation.h"
 enum RiemannSolverType
 {
-    HLLCSolver,
-    HLLESolver,
-    HLLSimple,
-    HLLIsentropic,
-    ExacRiemanSolver
+    HLLCSolver,         // not correct
+    HLLESolver,         // correct
+    HLLSimple,          // not correct
+    HLLIsentropic,      // correct
+    ExacRiemanSolver,   // correct
+    HLLESolverSimen     // correct
 };
 struct RiemannSolver
 {
@@ -25,6 +26,11 @@ struct HLLCSolver : public RiemannSolver
 
 
 struct HLLESolver : public RiemannSolver
+{
+    void computeFlux(SystemOfEquation *system);
+};
+
+struct HLLESolverSimen : public RiemannSolver
 {
     void computeFlux(SystemOfEquation *system);
 };
