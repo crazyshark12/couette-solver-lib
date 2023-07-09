@@ -6,6 +6,8 @@ void HLLCSolver::computeFlux(SystemOfEquation *system)
 {
     for(size_t i = 0 ; i < system->numberOfCells-1; i++)
     {
+        if(i==55)
+            double dg = 0;
         double u0, u1,v0,v1,a0,a1, rho0, rho1, p0, p1, E0, E1, H0 , H1, avg_H, S0 , S1, S_star;
         vector<double> U_star_0(system->systemOrder),U_star_1(system->systemOrder);
         double avg_a, avg_v;
@@ -32,11 +34,11 @@ void HLLCSolver::computeFlux(SystemOfEquation *system)
         H0 = E0 + p0/system->getDensity(i);
         H1 = E1 + p1/system->getDensity(i+1);
         avg_H = (rho0 * H0 + rho1 * H1) / (rho0 + rho1);
-        avg_a = sqrt((/*solParam.Gamma*/5/3 - 1)*(avg_H - 0.5 * pow(avg_v,2)));
-//        S0 = (avg_v - avg_a);
-//        S1 = (avg_v + avg_a);
-        S0 = min(v0, v1);
-        S1 = max(v0, v1);
+        avg_a = sqrt((gamma - 1.)*(avg_H - 0.5 * pow(avg_v,2)));
+        S0 = (avg_v - avg_a);
+        S1 = (avg_v + avg_a);
+//        S0 = min(v0, v1);
+//        S1 = max(v0, v1);
         S_star = (p1 - p0 +
                 pow(rho0,2)*u0*(S0 - u0) - pow(rho1,2)*u1*(S1 - u1))
                 / (pow(rho0,2)*(S0 - u0) - pow(rho1,2)*(S1 - u1));
@@ -48,25 +50,29 @@ void HLLCSolver::computeFlux(SystemOfEquation *system)
             U_star_0[j] = coeff_0;
             U_star_1[j] = coeff_1;
         }
-        U_star_0[system->v_tau] = coeff_0 * v0;
-        U_star_1[system->v_tau] = coeff_1 * v1;
+//        U_star_0[system->v_tau] = coeff_0 * v0;
+//        U_star_1[system->v_tau] = coeff_1 * v1;
 
-        U_star_0[system->v_normal] = coeff_0 * S_star;
-        U_star_1[system->v_normal] = coeff_1 * S_star;
+        U_star_0[system->v_normal] = system->getDensity(i)   * coeff_0 * S_star;
+        U_star_1[system->v_normal] = system->getDensity(i+1) * coeff_1 * S_star;
 
-        U_star_0[system->energy] = coeff_0 * (E0 + (S_star - u0)*(S_star + p0/(system->getDensity(i) * (S0 - u0))));
-        U_star_1[system->energy] = coeff_1 * (E1 + (S_star - u1)*(S_star + p1/(system->getDensity(i+1) * (S1 - u1))));
+//        U_star_0[system->energy] = coeff_0 * (E0 + (S_star - u0)*(S_star + p0/(system->getDensity(i) * (S0 - u0))));
+//        U_star_1[system->energy] = coeff_1 * (E1 + (S_star - u1)*(S_star + p1/(system->getDensity(i+1) * (S1 - u1))));
+
+
+        U_star_0[system->energy] = coeff_0 * (E0/system->getDensity(i) + (S_star - u0)*(S_star + p0/(system->getDensity(i) *(S0 - u0))));
+        U_star_1[system->energy] = coeff_1 * (E1/system->getDensity(i+1) + (S_star - u1)*(S_star + p1/(system->getDensity(i+1)*(S1 - u1))));
 
         if(S0 >= 0)
         {
-            for(size_t j = 0; j < system->systemOrder-1; j++)
+            for(size_t j = 0; j < system->systemOrder; j++)
             {
                 system->Flux[j][i] = system->F[j][i];
             }
         }
         else if(S1 <= 0)
         {
-            for(size_t j = 0; j < system->systemOrder-1; j++)
+            for(size_t j = 0; j < system->systemOrder; j++)
             {
                 system->Flux[j][i] = system->F[j][i+1];
             }
@@ -82,14 +88,14 @@ void HLLCSolver::computeFlux(SystemOfEquation *system)
 //        }
         else if( S0 <= 0 && S_star >= 0)
         {
-            for(size_t j = 0; j < system->systemOrder-1; j++)
+            for(size_t j = 0; j < system->systemOrder; j++)
             {
                     system->Flux[j][i] = system->F[j][i] + S0*(U_star_0[j] - system->U[j][i]);
             }
         }
         else if( S_star <= 0 && S1 >= 0)
         {
-            for(size_t j = 0; j < system->systemOrder-1; j++)
+            for(size_t j = 0; j < system->systemOrder; j++)
             {
                     system->Flux[j][i] = system->F[j][i+1] + S1*(U_star_1[j] - system->U[j][i+1]);
             }
@@ -100,7 +106,7 @@ void HLLCSolver::computeFlux(SystemOfEquation *system)
 
 void HLLESolver::computeFlux(SystemOfEquation *system)
 {
-    double gamma = 5./3.;
+    double gamma = 1.4;
     for(size_t i = 0 ; i < system->numberOfCells-1; i++)
     {
         double H0, H1, c0, c1, u0, u1, v0,v1,V0,V1, rho0, rho1, u_avg,v_avg, H_avg, c_avg, b0, b1, b_plus, b_minus;

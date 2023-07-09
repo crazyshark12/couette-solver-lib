@@ -48,7 +48,7 @@ int main()
 
     double h = 1;
 
-    GodunovSolverSoda solver(mixture,startParam,solParam, SystemOfEquationType::soda,RiemannSolverType::HLLIsentropic);
+    GodunovSolverSoda solver(mixture,startParam,solParam, SystemOfEquationType::soda,RiemannSolverType::HLLCSolver);
     solver.setDelta_h(h / solParam.NumCell);
     solver.setWriter(&writer);
     //solver.setObserver(&watcher);
