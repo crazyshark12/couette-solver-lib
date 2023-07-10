@@ -9,7 +9,7 @@ void GodunovSolverSoda::solve()
     double T = 0;
     for(size_t i  = 0; i < solParam.MaxIter; i++)
     {
-        if(i == 49)
+        if(i == 22)
             double x  = 3 ;
         // Устанавливаем текущий временной шаг
         setDt();
