@@ -29,9 +29,8 @@ void GodunovSolver::solve()
         if(i%1 == 0)
         {
             std::cout<<i<<" iteration"<<std::endl;
-            writePoints(T); // микросек
+            writePoints(i); // микросек
         }
-
         //проверка точности
         if(isObserverWatching)
         {

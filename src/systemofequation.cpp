@@ -44,20 +44,20 @@ double SystemOfEquation::getMaxVelocity()
 
 void Couette2::prepareVectorSizes()
 {
-    U.resize(systemOrder); // т.е. 2 уравнения неразрывности + 2 уравнения движения + 1 уравнение энергии
+    U.resize(systemOrder); // т.е. если компоненты две, то 2 уравнения неразрывности + 2 уравнения движения + 1 уравнение энергии
     for(size_t i = 0 ; i <  U.size(); i++)
         U[i].resize(numberOfCells);
 
 
-    F.resize(systemOrder); // т.е. 2 уравнения неразрывности + 2 уравнения движения + 1 уравнение энергии
+    F.resize(systemOrder); 
     for(size_t i = 0 ; i <  F.size(); i++)
         F[i].resize(numberOfCells);
 
-    Flux.resize(systemOrder); // т.е. 2 уравнения неразрывности + 2 уравнения движения + 1 уравнение энергии
+    Flux.resize(systemOrder); 
     for(size_t i = 0 ; i <  Flux.size(); i++)
         Flux[i].resize(numberOfCells-1); // на одну меньше, т.к. через грани
 
-    R.resize(systemOrder); // т.е. 2 уравнения неразрывности + 2 уравнения движения + 1 уравнение энергии
+    R.resize(systemOrder); 
     for(size_t i = 0 ; i <  R.size(); i++)
         R[i].resize(numberOfCells);
 }
@@ -75,7 +75,7 @@ void Couette2::prepareSolving(vector<macroParam> & points)
 
 
         //U3[i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
-        U[energy][i] = (3*points[i].pressure)/2 + 0.5*pow(points[i].velocity,2)*points[i].density;
+        U[energy][i] = (3.*points[i].pressure)/2. + 0.5*pow(points[i].velocity,2)*points[i].density;
     }
 }
 
@@ -90,7 +90,7 @@ void Couette2::prepareIndex()
 
 double Couette2::getPressure(size_t i)
 {
-    return 2/3*(U[energy][i] - getDensity(i)*pow(getVelocity(i),2)/2);
+    return 2./3.*(U[energy][i] - getDensity(i)*pow(getVelocity(i),2)/2.);
 }
 
 double Couette2::getDensity(size_t i)
@@ -123,9 +123,9 @@ double Couette2::getEnergy(size_t i)
 
 double Couette2::getTemp(size_t i)
 {
-    double U = getEnergy(i) - pow(getVelocity(i),2)/2;
+    double U = getEnergy(i) - pow(getVelocity(i),2)/2.;
     double n = Nav / mixture.molarMass() * getDensity(i);
-    return U * 2/3 * getDensity(i) / (n * kB);
+    return U * 2./3. * getDensity(i) / (n * kB);
 }
 
 void Couette2::updateU(double dh, double dt)
@@ -158,23 +158,33 @@ void Couette2::computeF(vector<macroParam> &points, double dh)
     Mixture mixture = points[0].mixture;
     for(size_t i = 0 ; i < numberOfCells; i++)
     {
+        macroParam p0, p1, p2;
+        if(i!=0 && i != numberOfCells-1)
+        {
+            p0 = points[i - 1];
+            p1 = points[i];
+            p2 = points[i + 1];
+        }
+        else if (i == 0)
+        {
+            p0 = points[i];
+            p1 = points[i];
+            p2 = points[i + 1];
+        }
+        else if (i == numberOfCells - 1)
+        {
+            p0 = points[i-1];
+            p1 = points[i];
+            p2 = points[i];
+        }
         // Рассчитываем производные в точке i
         double dv_tau_dy;
         double dv_normal_dy;
         double dT_dy;
-        if(i!=numberOfCells-1)
-        {
-            dT_dy = (points[i+1].temp - points[i].temp) / (dh);
-            dv_tau_dy = (points[i+1].velocity_tau - points[i].velocity_tau) / (dh);
-            dv_normal_dy = (points[i+1].velocity_normal - points[i].velocity_normal) / (dh);
-        }
-        else
-        {
-            dT_dy = -(points[i].temp - points[i-1].temp) / (dh);
-            dv_tau_dy = -(points[i].velocity_tau - points[i-1].velocity_tau) / (dh);
-            dv_normal_dy = -(points[i].velocity_normal - points[i-1].velocity_normal) / (dh);
-        }
-
+        dT_dy = (p2.temp - p0.temp) / (2.*dh);
+        dv_tau_dy = (p2.velocity_tau - p0.velocity_tau) / (2.*dh);
+        dv_normal_dy = (p2.velocity_normal - p0.velocity_normal) / (2. * dh);
+        
         vector<double> dy_dy(numberOfComponents);
 
         //учёт граничных условий
@@ -184,31 +194,31 @@ void Couette2::computeF(vector<macroParam> &points, double dh)
         {
             for(size_t j = 0 ; j <numberOfComponents; j++)
             {
-                dy_dy[j] = (points[i+1].fractionArray[j] - points[i].fractionArray[j])/ (dh);
+                dy_dy[j] = (p2.fractionArray[j] - p0.fractionArray[j])/ (2.*dh);
             }
         }
         // Расчет поточных членов
         // .....
         // сейчас так:
-        double etta = coeffSolver->shareViscositySimple(points[i]);
-        double lambda = coeffSolver->lambda(points[i]);
-        double bulk = coeffSolver->bulcViscositySimple(mixture,points[i].temp, points[i].density, points[i].pressure);
+        double etta = coeffSolver->shareViscositySimple(p1);
+        double lambda = coeffSolver->lambda(p1);
+        double bulk = coeffSolver->bulcViscositySimple(mixture, p1.temp, p1.density, p1.pressure);
 
         for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
         {
             if(j!=0)
-                F[j][i] = -points[i].density * mixture.getEffDiff(j) * dy_dy[j];
+                F[j][i] = -p1.density * mixture.getEffDiff(j) * dy_dy[j];
             else
-                F[j][i] = points[i].density * points[i].velocity_normal;
+                F[j][i] = p1.density * p1.velocity_normal;
         }
-        F[v_tau][i] = points[i].density * points[i].velocity_tau * points[i].velocity_normal  -etta * dv_tau_dy;
-        F[v_normal][i] = points[i].density *pow(points[i].velocity_normal,2) + points[i].pressure - (bulk + 4/3*etta)* dv_normal_dy;
+        F[v_tau][i] = p1.density * p1.velocity_tau * p1.velocity_normal  -etta * dv_tau_dy;
+        F[v_normal][i] = p1.density *pow(p1.velocity_normal,2) + p1.pressure - (bulk + 4./3.*etta)* dv_normal_dy;
         F[energy][i] = 0;
         for(size_t j = 0 ; j <numberOfComponents; j++)
         {
-            F[energy][i]+= - points[i].density * mixture.getEffDiff(j)*dy_dy[j] * mixture.getEntalp(i);
+            F[energy][i]+= -p1.density * mixture.getEffDiff(j)*dy_dy[j] * mixture.getEntalp(i);
         }
-        F[energy][i] += -lambda*dT_dy - etta*points[i].velocity_tau*dv_tau_dy + (points[i].pressure - (bulk + 4/3*etta)* dv_normal_dy) * points[i].velocity_normal;
+        F[energy][i] += -lambda*dT_dy - etta* p1.velocity_tau*dv_tau_dy + (p1.pressure - (bulk + 4./3.*etta)* dv_normal_dy) * p1.velocity_normal;
     }
 }
 

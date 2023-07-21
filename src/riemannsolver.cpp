@@ -101,8 +101,8 @@ void HLLCSolver::computeFlux(SystemOfEquation *system)
             U_star_0[j] = coeff_0;
             U_star_1[j] = coeff_1;
         }
-//        U_star_0[system->v_tau] = coeff_0 * v0;
-//        U_star_1[system->v_tau] = coeff_1 * v1;
+        U_star_0[system->v_tau] = coeff_0 * u0;
+        U_star_1[system->v_tau] = coeff_1 * u1;
 
         U_star_0[system->v_normal] = coeff_0 * S_star;
         U_star_1[system->v_normal] = coeff_1 * S_star;

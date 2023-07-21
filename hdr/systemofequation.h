@@ -66,7 +66,7 @@ struct Couette2 : public SystemOfEquation
     double getVelocity(size_t i);
     double getVelocityTau(size_t i);
     double getVelocityNormal(size_t i);
-    double getSoundSpeed(size_t i){};
+    double getSoundSpeed(size_t i) { return 0; };
     double getEnergy(size_t i);
     double getTemp(size_t i);
 
@@ -92,7 +92,7 @@ struct Soda : public SystemOfEquation
     double getVelocityNormal(size_t i);
     double getSoundSpeed(size_t i);
     double getEnergy(size_t i);
-    double getTemp(size_t i){};
+    double getTemp(size_t i) { return 0; };
 
     double getMaxVelocity();
     void updateU(double dh, double dt);

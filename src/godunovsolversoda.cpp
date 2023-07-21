@@ -1,7 +1,7 @@
 #include "godunovsolversoda.h"
 #include <iostream>
 #include <omp.h>
-#include <typeinfo.h>
+//#include <typeinfo.h>
 void GodunovSolverSoda::solve()
 {
     prepareSolving();
@@ -27,18 +27,6 @@ void GodunovSolverSoda::solve()
         system->updateU(delta_h,timeSolvind.last());
         // Обновляем вектор макропараметров
         updatePoints();
-//        if(i == 40)
-//        {
-//            for(size_t k = 0; k < points.size(); k++)
-//            {
-//                std::cout<<points[k].velocity<<" ";
-//            }
-//            std::cout<<std::endl<<std::endl;
-//            for(size_t k = 0; k < points.size(); k++)
-//            {
-//                std::cout<<points[k].density<<" ";
-//            }
-//        }
 
 
         //записать данные, если это требуется

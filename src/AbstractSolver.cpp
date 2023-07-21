@@ -96,7 +96,7 @@ void AbstractSolver::setDelta_h(double dh)
     delta_h = dh;
 }
 
-void AbstractSolver::prepareSolving()
+void AbstractSolver::prepareSolving()   
 {
     prepareVectorSizes();
     for(size_t i = 1; i < points.size()-1; i++)
@@ -133,8 +133,8 @@ void AbstractSolver::setDt()
     if(max!=0)
         dt = solParam.CFL*pow(delta_h,1)/max;
     else
-        dt = 0.001;
-    dt = 0.001; // тут фиксированный шаг
+        dt = 0.000001;
+    dt = 0.000001; // тут фиксированный шаг
     timeSolvind.push_back(dt);
     //timeSolvind.push_back(0.00001);
     return;
@@ -143,11 +143,9 @@ void AbstractSolver::setDt()
 void AbstractSolver::updatePoints()
 {
     auto size = points.size()-1;
-    #pragma omp parallel for schedule(static)
-    for(size_t i = 1; i < size; i++)
+    //#pragma omp parallel for schedule(static)
+    for(int i = 1; i < size; i++)
     {
-        if(i == 50)
-            double x = 50;
         points[i].velocity_tau = system->getVelocityTau(i);
         points[i].velocity_normal = system->getVelocityNormal(i);
         points[i].velocity = system->getVelocity(i);
