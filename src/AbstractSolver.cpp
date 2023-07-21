@@ -2,12 +2,60 @@
 
 #include "abstractsolver.h"
 
-AbstractSolver::AbstractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_)
+AbstractSolver::AbstractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_, SystemOfEquationType type, RiemannSolverType riemannType)
 {
     mixture = mixture_;
     startParam=startParam_;
     solParam =solParam_;
     delta_h = 0;
+    if(type == SystemOfEquationType::couette2)
+    {
+        auto *tmp = new Couette2();
+        system = tmp;
+    }
+    if(type == SystemOfEquationType::soda)
+    {
+        auto *tmp = new Soda();
+        system = tmp;
+    }
+    switch(riemannType)
+    {
+    case RiemannSolverType::HLLCSolver:
+        {
+                riemannSolver = new struct HLLCSolver();
+                break;
+        }
+    case RiemannSolverType::HLLESolver:
+        {
+                riemannSolver = new struct HLLESolver();
+                break;
+        }
+    case RiemannSolverType::HLLIsentropic:
+        {
+                riemannSolver = new struct HLLIsentropic();
+                break;
+        }
+    case RiemannSolverType::HLLSimple:
+        {
+                riemannSolver = new struct HLLSimple();
+                break;
+        }
+    case RiemannSolverType::ExacRiemanSolver:
+        {
+                riemannSolver = new struct ExacRiemanSolver();
+                break;
+        }
+    case RiemannSolverType::HLLESolverSimen:
+        {
+                riemannSolver = new struct HLLESolverSimen();
+                break;
+        }
+    }
+    system->setBorderCondition(&border);
+    system->setCoeffSolver(&coeffSolver);
+    system->setMixture(mixture);
+    system->setNumberOfCells(solParam.NumCell);
+    system->setSolverParams(solParam);
 }
 
 void AbstractSolver::setStartCondition(macroParam start)
@@ -48,9 +96,9 @@ void AbstractSolver::setDelta_h(double dh)
     delta_h = dh;
 }
 
-void AbstractSolver::prepareSolving()
+void AbstractSolver::prepareSolving()   
 {
-    prepareVectors();
+    prepareVectorSizes();
     for(size_t i = 1; i < points.size()-1; i++)
     {
         points[i].mixture = mixture;
@@ -60,58 +108,60 @@ void AbstractSolver::prepareSolving()
         points[i].density = startParam.pressure * mixture.molarMass()/(UniversalGasConstant * startParam.temp);
         points[i].densityArray[0] =  points[i].density;
         points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
-        points[i].velocity = solParam.Ma*points[i].soundSpeed;
+        points[i].velocity_tau = solParam.Ma*points[i].soundSpeed;
+        points[i].velocity_normal = 0;
+        points[i].velocity = abs(points[i].velocity_tau);
     }
     // для points[0] и points[solParam.NumCell-1] (!важно что идёт после цикла!)
     useBorder();
-
-    for(auto i  = 0; i < solParam.NumCell; i++)
-    {
-        U1[0][i] = points[i].density;
-        for(size_t j = j; j < mixture.NumberOfComponents; j++)
-            U1[j][i] = points[i].densityArray[j] ;
-        U2[i] = points[i].density*points[i].velocity;
-
-
-        //U3[i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
-        U3[i] = (3*points[i].pressure)/2 + 0.5*pow(points[i].velocity,2)*points[i].density;
-    }
+    system->prepareSolving(points);
 }
 
-void AbstractSolver::prepareVectors()
+void AbstractSolver::prepareVectorSizes()
 {
-
-    U1.resize(mixture.NumberOfComponents);
-    U2.resize(solParam.NumCell);
-    U3.resize(solParam.NumCell);
-    for(size_t i = 0 ; i <  U1.size(); i++)
-        U1[i].resize(solParam.NumCell);
-
     points.resize(solParam.NumCell);
     for(size_t i = 0; i < points.size(); i++)
         points[i].densityArray.resize(mixture.NumberOfComponents);
-
-    F1.resize(mixture.NumberOfComponents);
-    for(size_t j = 0; j < mixture.NumberOfComponents; j++)
-        F1[j].resize(solParam.NumCell);
-    F2.resize(solParam.NumCell);
-    F3.resize(solParam.NumCell);
-
-    R.resize(solParam.NumCell);
-    timeSolvind.push_back(0);
+    system->prepareVectorSizes();
 }
 
 
 void AbstractSolver::setDt()
 {
-    Matrix velocity = U2/U1[0];
-    auto pressure = (U3 - Matrix::POW(velocity,2)*0.5*U1[0])*(solParam.Gamma - 1);
-    auto temp = velocity;
-    auto max =*std::max_element(temp.begin(), temp.end());  // это нужно чтобы правильно подобрать временной шаг, чтобы соблюдался критерий КФЛ
-    double dt = solParam.CFL*pow(delta_h,1)/max;
+    double max = system->getMaxVelocity();  // это нужно чтобы правильно подобрать временной шаг, чтобы соблюдался критерий КФЛ
+    double dt;
+    if(max!=0)
+        dt = solParam.CFL*pow(delta_h,1)/max;
+    else
+        dt = 0.000001;
+    dt = 0.000001; // тут фиксированный шаг
     timeSolvind.push_back(dt);
     //timeSolvind.push_back(0.00001);
     return;
+}
+
+void AbstractSolver::updatePoints()
+{
+    auto size = points.size()-1;
+    //#pragma omp parallel for schedule(static)
+    for(int i = 1; i < size; i++)
+    {
+        points[i].velocity_tau = system->getVelocityTau(i);
+        points[i].velocity_normal = system->getVelocityNormal(i);
+        points[i].velocity = system->getVelocity(i);
+        points[i].density = system->getDensity(i);
+        points[i].pressure = system->getPressure(i);
+
+        for(size_t j = 0; j < mixture.NumberOfComponents; j++)
+        {
+            points[i].densityArray[j] =  system->U[j][i]; // тут косяк TODO
+            points[i].fractionArray[j] = points[i].densityArray[j] / points[i].density;
+        }
+        points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
+        points[i].temp = system->getTemp(i);
+    }
+    useBorder();
+    system->updateBorderU(points);
 }
 
 void AbstractSolver::useBorder()
@@ -121,7 +171,9 @@ void AbstractSolver::useBorder()
     points[0].density =points[1].density;
     points[0].densityArray =points[1].densityArray;
     points[0].fractionArray =points[1].fractionArray;
-    points[0].velocity = -points[1].velocity + 2*border.down_velocity;
+    points[0].velocity_tau = -points[1].velocity_tau + 2*border.down_velocity;
+    points[0].velocity_normal = 0;
+    points[0].velocity = abs(points[0].velocity_tau);
     points[0].temp = -points[1].temp +  2*border.down_temp;
     // дополнительные рассчитываемые величины
     points[0].pressure = points[0].density * (UniversalGasConstant/mixture.molarMass()) * points[0].temp;
@@ -133,33 +185,15 @@ void AbstractSolver::useBorder()
     points[solParam.NumCell-1].density =points[solParam.NumCell-2].density;
     points[solParam.NumCell-1].densityArray =points[solParam.NumCell-2].densityArray;
     points[solParam.NumCell-1].fractionArray =points[solParam.NumCell-2].fractionArray;
-    points[solParam.NumCell-1].velocity = -points[solParam.NumCell-2].velocity + 2*border.up_velocity;
+    points[solParam.NumCell-1].velocity_tau = -points[solParam.NumCell-2].velocity_tau + 2*border.up_velocity;
+    points[solParam.NumCell-1].velocity_normal = 0;
+    points[solParam.NumCell-1].velocity = abs(points[solParam.NumCell-1].velocity_tau);
     points[solParam.NumCell-1].temp = -points[solParam.NumCell-2].temp +  2*border.up_temp;
     // дополнительные рассчитываемые величины
     points[solParam.NumCell-1].pressure = points[solParam.NumCell-1].density * (UniversalGasConstant/mixture.molarMass()) * points[solParam.NumCell-1].temp;
     points[solParam.NumCell-1].soundSpeed = sqrt(solParam.Gamma*points[solParam.NumCell-1].pressure/points[solParam.NumCell-1].density);
 
 
-}
-void AbstractSolver::UpdateBorderU()
-{
-    for(int i : { 0, solParam.NumCell-1})
-    {
-        U1[0][i] = points[i].density;
-        for(size_t j = j; j < mixture.NumberOfComponents; j++)
-            U1[j][i] = points[i].densityArray[j];
-        U2[i] = points[i].density*points[i].velocity;
-        //U3[i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
-        U3[i] = (3*points[i].pressure)/2 + 0.5*pow(points[i].velocity,2)*points[i].density;
-    }
-}
-double AbstractSolver::computeT(macroParam p, size_t i) // i - номер ячейки
-{
-    double U = U3[i] / p.density - pow(p.velocity,2)/2;
-    double n = Nav / p.mixture.molarMass() * p.density;
-    return U * 2/3 * p.density / (n * kB);
-//    double n = Nav / p.mixture.molarMass() * p.density;
-    //    p.temp = (U3[i] - points[i].density * pow(points[i].velocity,2) / 2 )*(3/2 * n * kB ) ;
 }
 
 bool AbstractSolver::observerCheck(size_t currentIteration)

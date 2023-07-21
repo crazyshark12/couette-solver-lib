@@ -26,6 +26,9 @@ struct Mixture
 
     double molarMass();
     double molarMass(size_t i);
+    double mass(size_t i);
+    double sigma(size_t i);
+    double epsilonDevK(size_t i);
     double getEffDiff(size_t i); // пока временное решение
     double getEntalp(size_t i);
 };

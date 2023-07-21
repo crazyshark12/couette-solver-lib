@@ -11,7 +11,7 @@ macroParam AdditionalSolver::ExacRiemanSolver(macroParam left, macroParam right,
     double right_soundspeed=sqrt( Gamma*right.pressure/right.density);
 
     double p_star= 0.5*(left.pressure+right.pressure) +
-            0.125 * ( left.velocity-right.velocity ) *
+            0.125 * ( left.velocity_tau-right.velocity_tau ) *
             ( left.density+right.density ) *
             ( left_soundspeed+right_soundspeed );
     p_star=std::max(p_star,TOL);
@@ -22,14 +22,14 @@ macroParam AdditionalSolver::ExacRiemanSolver(macroParam left, macroParam right,
     {
         double temp1= sqrt ( ( 2.0/ ( Gamma+1.0 ) /left.density ) / ( p_star+ ( Gamma-1.0 ) / ( Gamma+1.0 ) *left.pressure ) );
         double temp2= sqrt ( ( 2.0/ ( Gamma+1.0 ) /right.density ) / ( p_star+ ( Gamma-1.0 ) / ( Gamma+1.0 ) *right.pressure ) );
-        p_star= (temp1*left.pressure+temp2*right.pressure+ ( left.velocity-right.velocity ) ) / ( temp1+temp2 );
+        p_star= (temp1*left.pressure+temp2*right.pressure+ ( left.velocity_tau-right.velocity_tau ) ) / ( temp1+temp2 );
         p_star=std::max(p_star,TOL);
     }
     else if ( p_star<pMin )
     {
        double temp1= ( Gamma-1.0 ) / ( 2.0*Gamma );
        p_star= pow(( left_soundspeed+right_soundspeed+0.5*(Gamma-1.0 )*
-                   ( left.velocity-right.velocity ) ) /
+                   ( left.velocity_tau-right.velocity_tau ) ) /
                    (left_soundspeed/pow(left.pressure,temp1) +
                    right_soundspeed/pow(right.pressure,temp1)), 1.0/temp1);
     }
@@ -64,13 +64,13 @@ macroParam AdditionalSolver::ExacRiemanSolver(macroParam left, macroParam right,
         else
             f_d=f_d + temp1* ( 1.0-0.5* ( p_star-right.pressure ) /
                          ( p_star+ ( Gamma-1.0 ) / ( Gamma+1.0 ) *right.pressure ) );
-        double p_new = p_star - (f1+f2 - (left.velocity - right.velocity))/f_d;
+        double p_new = p_star - (f1+f2 - (left.velocity_tau - right.velocity_tau))/f_d;
         if(abs(p_new - p_star)/(0.5*abs(p_new + p_star)) < TOL)
             break;
         p_star = p_new;
     }
     // calculate star speed */
-    double star_speed=0.5* ( left.velocity + right.velocity ) +0.5* ( f2-f1 );
+    double star_speed=0.5* ( left.velocity_tau + right.velocity_tau ) +0.5* ( f2-f1 );
     double left_star_density, left_tail_speed, left_head_speed,
             right_star_density, right_tail_speed,right_head_speed;
     //LEFT
@@ -78,14 +78,14 @@ macroParam AdditionalSolver::ExacRiemanSolver(macroParam left, macroParam right,
             // SHOCK
         left_star_density = left.density * ( p_star / left.pressure + ( Gamma-1.0 ) / ( Gamma+1.0 ) ) /
                 ( ( Gamma-1.0 ) / ( Gamma+1.0 ) * p_star / left.pressure + 1.0 );
-        left_tail_speed = left.velocity -left_soundspeed * sqrt ( ( Gamma+1.0 ) / ( 2.0*Gamma ) * p_star/left.pressure +
+        left_tail_speed = left.velocity_tau -left_soundspeed * sqrt ( ( Gamma+1.0 ) / ( 2.0*Gamma ) * p_star/left.pressure +
                 ( Gamma-1.0 ) / ( 2.0*Gamma ) );
         left_head_speed = left_tail_speed;
     }
     else // % left_wave_ == kRarefaction
     {
         left_star_density = left.density * pow(p_star/left.pressure,1.0/Gamma);
-        left_head_speed = left.velocity - left_soundspeed;
+        left_head_speed = left.velocity_tau - left_soundspeed;
         left_tail_speed = star_speed - sqrt ( Gamma*p_star/left_star_density );
     }
     //RIGHT
@@ -94,7 +94,7 @@ macroParam AdditionalSolver::ExacRiemanSolver(macroParam left, macroParam right,
         right_star_density = right.density *
                             ( p_star / right.pressure + ( Gamma-1.0 ) / ( Gamma+1.0 ) ) /
                             ( ( Gamma-1.0 ) / ( Gamma+1.0 ) * p_star / right.pressure + 1.0 );
-        right_tail_speed = right.velocity +
+        right_tail_speed = right.velocity_tau +
            right_soundspeed * sqrt ( ( Gamma+1.0 ) / ( 2.0*Gamma ) * p_star/right.pressure +
            ( Gamma-1.0 ) / ( 2.0*Gamma ) );
         right_head_speed = right_tail_speed;
@@ -102,7 +102,7 @@ macroParam AdditionalSolver::ExacRiemanSolver(macroParam left, macroParam right,
     else // % right_wave_ == kRarefaction
     {
         right_star_density = right.density *  pow(p_star/right.pressure, 1.0/Gamma );
-        right_head_speed = right.velocity + right_soundspeed;
+        right_head_speed = right.velocity_tau + right_soundspeed;
         right_tail_speed = star_speed + sqrt ( Gamma*p_star/right_star_density );
     }
 
@@ -115,13 +115,13 @@ macroParam AdditionalSolver::ExacRiemanSolver(macroParam left, macroParam right,
             if ( lambda < left_head_speed )
             { // the u is before the shock
                 ret.density  = left.density;
-                ret.velocity = left.velocity;
+                ret.velocity_tau = left.velocity_tau;
                 ret.pressure = left.pressure;
             }
             else  //% the u is behind the shock
             {
                 ret.density  = left_star_density;
-                ret.velocity = star_speed;
+                ret.velocity_tau = star_speed;
                 ret.pressure = p_star;
             }
         }
@@ -130,22 +130,22 @@ macroParam AdditionalSolver::ExacRiemanSolver(macroParam left, macroParam right,
             if ( lambda < left_head_speed )//  % the u is before the rarefaction
             {
                 ret.density  = left.density;
-                ret.velocity = left.velocity;
+                ret.velocity_tau = left.velocity_tau;
                 ret.pressure = left.pressure;
             }
             else
             {
                 if ( lambda < left_tail_speed )//  % the u is inside the rarefaction
                 {//% left_rarefaction (4.56)}
-                    double temp1 = 2.0/ ( Gamma+1.0 ) + ( Gamma-1.0 ) / ( Gamma+1.0 )/left_soundspeed *(left.velocity - lambda);
+                    double temp1 = 2.0/ ( Gamma+1.0 ) + ( Gamma-1.0 ) / ( Gamma+1.0 )/left_soundspeed *(left.velocity_tau - lambda);
                     ret.density = left.density *  pow(temp1, 2.0/( Gamma-1.0 ));
                     ret.pressure = left.pressure * pow(temp1, 2.0*Gamma/ ( Gamma-1.0));
-                    ret.velocity = 2.0/ ( Gamma+1.0 ) * ( left_soundspeed + ( Gamma-1.0 ) /2.0*left.velocity + lambda);
+                    ret.velocity_tau = 2.0/ ( Gamma+1.0 ) * ( left_soundspeed + ( Gamma-1.0 ) /2.0*left.velocity_tau + lambda);
                 }
                 else//  % the u is after the rarefaction
                 {
                     ret.density  = left_star_density;
-                    ret.velocity = star_speed;
+                    ret.velocity_tau = star_speed;
                     ret.pressure = p_star;
                 }
             }
@@ -159,13 +159,13 @@ macroParam AdditionalSolver::ExacRiemanSolver(macroParam left, macroParam right,
             if ( lambda > right_head_speed )  //% the u is before the shock
             {
                 ret.density  = right.density;
-                ret.velocity = right.velocity;
+                ret.velocity_tau = right.velocity_tau;
                 ret.pressure = right.pressure;
             }
             else  //% the u is behind the shock
             {
                 ret.density  = right_star_density;
-                ret.velocity = star_speed;
+                ret.velocity_tau = star_speed;
                 ret.pressure = p_star;
             }
         }
@@ -174,22 +174,22 @@ macroParam AdditionalSolver::ExacRiemanSolver(macroParam left, macroParam right,
             if ( lambda > right_head_speed ) // % the u is before the rarefaction
             {
                 ret.density  = right.density;
-                ret.velocity = right.velocity;
+                ret.velocity_tau = right.velocity_tau;
                 ret.pressure = right.pressure;
             }
             else
             {
                 if ( lambda > right_tail_speed ) // % the u is inside the rarefaction
                 {
-                    double temp1 =2.0/ ( Gamma+1.0 ) - ( Gamma-1.0 ) / ( Gamma+1.0 ) /right_soundspeed *(right.velocity - lambda);
+                    double temp1 =2.0/ ( Gamma+1.0 ) - ( Gamma-1.0 ) / ( Gamma+1.0 ) /right_soundspeed *(right.velocity_tau - lambda);
                     ret.density = right.density *  pow(temp1, 2.0/ ( Gamma-1.0 ) );
                     ret.pressure = right.pressure * pow(temp1, 2.0*Gamma/ ( Gamma-1.0 ) );
-                    ret.velocity = 2.0/ ( Gamma+1.0 ) * ( -right_soundspeed + ( Gamma-1.0 ) /2.0*right.velocity + lambda);
+                    ret.velocity_tau = 2.0/ ( Gamma+1.0 ) * ( -right_soundspeed + ( Gamma-1.0 ) /2.0*right.velocity_tau + lambda);
                 }
                 else // % the u is after the rarefaction
                 {
                     ret.density  = right_star_density;
-                    ret.velocity = star_speed;
+                    ret.velocity_tau = star_speed;
                     ret.pressure = p_star;
                 }
             }

@@ -19,6 +19,21 @@ double Mixture::molarMass(size_t i)
     return components[i].molarMass;
 }
 
+double Mixture::mass(size_t i)
+{
+    return components[i].mass;
+}
+
+double Mixture::sigma(size_t i)
+{
+    return components[i].sigma;
+}
+
+double Mixture::epsilonDevK(size_t i)
+{
+    return components[i].epsilonDevK;
+}
+
 double Mixture::getEffDiff(size_t j)
 {
     return 0;

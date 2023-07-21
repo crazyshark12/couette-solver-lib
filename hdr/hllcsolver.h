@@ -1,6 +1,6 @@
 #pragma once
 
-#include "abstractsolver.h"
+//#include "abstractsolver.h"
 
 
 struct HLLCSolver: public AbstractSolver
@@ -22,8 +22,14 @@ protected:
     // Расчет релаксационных членов
     void computeR();
 
+    // Расчет потоков на стыках ячеек методом HLLE
+    void computeHlleF();
+
     // Расчет потоков на стыках ячеек методом HLLC
     void computeHllcF();
+
+    // Расчет потоков на стыках ячеек методом HLL
+    void computeHllF();
 
     void updateU();
 
@@ -32,7 +38,7 @@ protected:
 
 
     // Значения потока на границах ячеек по методу HLLC
-    Matrix  fluxF2, fluxF3;
+    Matrix  fluxF2, fluxF2_normal , fluxF3;
     vector<Matrix> fluxF1;
 
     //записывать ли данные в файл ?
