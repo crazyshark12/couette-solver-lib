@@ -23,7 +23,7 @@ int main()
     startParam.temp = 800; //140
 
     solverParams solParam;
-    solParam.NumCell     = 100;    // Число расчтеных ячеек
+    solParam.NumCell     = 10;    // Число расчтеных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 1;    // Число Куранта
     solParam.MaxIter     = 100000000; // максимальное кол-во шагов по времени

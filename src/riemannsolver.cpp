@@ -94,7 +94,7 @@ void HLLCSolver::computeFlux(SystemOfEquation *system)
 
 //        S_star = (pow(rho1,2)*S0*(v1 - S1) - pow(rho0,2)*S1*(v0 - S0)) / (pow(rho1,2)*(v1 - S1) - pow(rho0,2)*(v0 - S0));
 
-        double coeff_0 = system->getDensity(i) * ((S0 - v0)/ (S0 - S_star));
+        double coeff_0 = system->getDensity(i)   * ((S0 - v0)/ (S0 - S_star));
         double coeff_1 = system->getDensity(i+1) * ((S1 - v1)/ (S1 - S_star));
         for(size_t j = 0; j < system->numberOfComponents; j++)
         {

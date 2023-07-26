@@ -211,7 +211,7 @@ void Couette2::computeF(vector<macroParam> &points, double dh)
             else
                 F[j][i] = p1.density * p1.velocity_normal;
         }
-        F[v_tau][i] = p1.density * p1.velocity_tau * p1.velocity_normal  -etta * dv_tau_dy;
+        F[v_tau][i] = p1.density * p1.velocity_tau * p1.velocity_normal  - etta * dv_tau_dy;
         F[v_normal][i] = p1.density *pow(p1.velocity_normal,2) + p1.pressure - (bulk + 4./3.*etta)* dv_normal_dy;
         F[energy][i] = 0;
         for(size_t j = 0 ; j <numberOfComponents; j++)
