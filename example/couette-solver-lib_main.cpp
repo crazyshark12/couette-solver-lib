@@ -36,7 +36,7 @@ int main()
     // это меняешь под себя. Он так создаст папку data
     // если не использовать setWriter, то записи не будет, но папка создастся, ибо она в конструкторе зашита
     // он автоматически очищает папку перед новым рассчётом
-    DataWriter writer("C:/");
+    DataWriter writer("D:/couette/couette/data");
 
     double T1wall = 1000;
     double T2wall = 1000;

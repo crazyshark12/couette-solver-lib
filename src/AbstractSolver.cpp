@@ -135,9 +135,9 @@ void AbstractSolver::setDt()
         dt = solParam.CFL*pow(delta_h,1)/max;
     else
         dt = 0.000001;
-    dt = 0.000001; // тут фиксированный шаг
-    timeSolvind.push_back(dt);
-    //timeSolvind.push_back(0.00001);
+    //dt = 0.000001; // тут фиксированный шаг
+    //timeSolvind.push_back(dt/1000.);
+    timeSolvind.push_back(0.000001);
     return;
 }
 
