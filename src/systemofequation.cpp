@@ -74,8 +74,8 @@ void Couette2::prepareSolving(vector<macroParam> & points)
         U[v_normal][i] = points[i].density*points[i].velocity_normal;
 
 
-        //U3[i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
-        U[energy][i] = (3.*points[i].pressure)/2. + 0.5*pow(points[i].velocity,2)*points[i].density;
+        U[energy][i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
+        //U[energy][i] = (3.*points[i].pressure)/2. + 0.5*pow(points[i].velocity,2)*points[i].density;
     }
 }
 
@@ -148,69 +148,69 @@ void Couette2::updateBorderU(vector<macroParam> &points)
             U[j][i] = points[i].densityArray[j];
         U[v_tau][i] = points[i].density*points[i].velocity_tau;
         U[v_normal][i] = points[i].density*points[i].velocity_normal;
-        //U3[i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
-        U[energy][i] = (3*points[i].pressure)/2 + 0.5*pow(points[i].velocity,2)*points[i].density;
+        U[energy][i] = points[i].pressure/(solParam.Gamma-1)+0.5*pow(points[i].velocity,2)*points[i].density;
+        //U[energy][i] = (3*points[i].pressure)/2 + 0.5*pow(points[i].velocity,2)*points[i].density;
     }
     return;
 }
-//void Couette2::computeF(vector<macroParam> &points, double dh)
-//{
-//    Mixture mixture = points[0].mixture;
-//    for(size_t i = 0 ; i < numberOfCells; i++)
-//    {
-//        // Рассчитываем производные в точке i
-//        double dv_tau_dy;
-//        double dv_normal_dy;
-//        double dT_dy;
-//        if(i!=numberOfCells-1)
-//        {
-//            dT_dy = (points[i+1].temp - points[i].temp) / (dh);
-//            dv_tau_dy = (points[i+1].velocity_tau - points[i].velocity_tau) / (dh);
-//            dv_normal_dy = (points[i+1].velocity_normal - points[i].velocity_normal) / (dh);
-//        }
-//        else
-//        {
-//            dT_dy = -(points[i].temp - points[i-1].temp) / (dh);
-//            dv_tau_dy = -(points[i].velocity_tau - points[i-1].velocity_tau) / (dh);
-//            dv_normal_dy = -(points[i].velocity_normal - points[i-1].velocity_normal) / (dh);
-//        }
+void Couette2::computeF(vector<macroParam> &points, double dh)
+{
+    Mixture mixture = points[0].mixture;
+    for(size_t i = 0 ; i < numberOfCells; i++)
+    {
+        // Рассчитываем производные в точке i
+        double dv_tau_dy;
+        double dv_normal_dy;
+        double dT_dy;
+        if(i!=numberOfCells-1)
+        {
+            dT_dy = (points[i+1].temp - points[i].temp) / (dh);
+            dv_tau_dy = (points[i+1].velocity_tau - points[i].velocity_tau) / (dh);
+            dv_normal_dy = (points[i+1].velocity_normal - points[i].velocity_normal) / (dh);
+        }
+        else
+        {
+            dT_dy = -(points[i].temp - points[i-1].temp) / (dh);
+            dv_tau_dy = -(points[i].velocity_tau - points[i-1].velocity_tau) / (dh);
+            dv_normal_dy = -(points[i].velocity_normal - points[i-1].velocity_normal) / (dh);
+        }
 
-//        vector<double> dy_dy(numberOfComponents);
+        vector<double> dy_dy(numberOfComponents);
 
-//        //учёт граничных условий
-//        if(i == 0 || i == numberOfCells-1)
-//            fill(dy_dy.begin(), dy_dy.end(),border->get_dyc_dy());
-//        else
-//        {
-//            for(size_t j = 0 ; j <numberOfComponents; j++)
-//            {
-//                dy_dy[j] = (points[i+1].fractionArray[j] - points[i].fractionArray[j])/ (dh);
-//            }
-//        }
-//        // Расчет поточных членов
-//        // .....
-//        // сейчас так:
-//        double etta = coeffSolver->shareViscositySimple(points[i]);
-//        double lambda = coeffSolver->lambda(points[i]);
-//        double bulk = coeffSolver->bulcViscositySimple(mixture,points[i].temp, points[i].density, points[i].pressure);
+        //учёт граничных условий
+        if(i == 0 || i == numberOfCells-1)
+            fill(dy_dy.begin(), dy_dy.end(),border->get_dyc_dy());
+        else
+        {
+            for(size_t j = 0 ; j <numberOfComponents; j++)
+            {
+                dy_dy[j] = (points[i+1].fractionArray[j] - points[i].fractionArray[j])/ (dh);
+            }
+        }
+        // Расчет поточных членов
+        // .....
+        // сейчас так:
+        double etta = coeffSolver->shareViscositySimple(points[i]);
+        double lambda = coeffSolver->lambda(points[i]);
+        double bulk = coeffSolver->bulcViscositySimple(mixture,points[i].temp, points[i].density, points[i].pressure);
 
-//        for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
-//        {
-//            if(j!=0)
-//                F[j][i] = -points[i].density * mixture.getEffDiff(j) * dy_dy[j];
-//            else
-//                F[j][i] = points[i].density * points[i].velocity_normal;
-//        }
-//        F[v_tau][i] = points[i].density * points[i].velocity_tau * points[i].velocity_normal  -etta * dv_tau_dy;
-//        F[v_normal][i] = points[i].density *pow(points[i].velocity_normal,2) + points[i].pressure - (bulk + 4/3*etta)* dv_normal_dy;
-//        F[energy][i] = 0;
-//        for(size_t j = 0 ; j <numberOfComponents; j++)
-//        {
-//            F[energy][i]+= - points[i].density * mixture.getEffDiff(j)*dy_dy[j] * mixture.getEntalp(i);
-//        }
-//        F[energy][i] += -lambda*dT_dy - etta*points[i].velocity_tau*dv_tau_dy + (points[i].pressure - (bulk + 4/3*etta)* dv_normal_dy) * points[i].velocity_normal;
-//    }
-//}
+        for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
+        {
+            if(j!=0)
+                F[j][i] = -points[i].density * mixture.getEffDiff(j) * dy_dy[j];
+            else
+                F[j][i] = points[i].density * points[i].velocity_normal;
+        }
+        F[v_tau][i] = points[i].density * points[i].velocity_tau * points[i].velocity_normal  -etta * dv_tau_dy;
+        F[v_normal][i] = points[i].density *pow(points[i].velocity_normal,2) + points[i].pressure - (bulk + 4/3*etta)* dv_normal_dy;
+        F[energy][i] = 0;
+        for(size_t j = 0 ; j <numberOfComponents; j++)
+        {
+            F[energy][i]+= - points[i].density * mixture.getEffDiff(j)*dy_dy[j] * mixture.getEntalp(i);
+        }
+        F[energy][i] += -lambda*dT_dy - etta*points[i].velocity_tau*dv_tau_dy + (points[i].pressure - (bulk + 4/3*etta)* dv_normal_dy) * points[i].velocity_normal;
+    }
+}
 
 
 //void Couette2::computeF(vector<macroParam> &points, double dh)
@@ -286,62 +286,62 @@ void Couette2::updateBorderU(vector<macroParam> &points)
 //    }
 //}
 
-void Couette2::computeF(vector<macroParam>& points, double dh)
-{
-    Mixture mixture = points[0].mixture;
-    for (size_t i = 0; i < numberOfCells; i++)
-    {
-        macroParam p1 = points[i];
-        double dv_tau_dy;
-        double dv_normal_dy;
-        double dT_dy;
+//void Couette2::computeF(vector<macroParam>& points, double dh)
+//{
+//    Mixture mixture = points[0].mixture;
+//    for (size_t i = 0; i < numberOfCells; i++)
+//    {
+//        macroParam p1 = points[i];
+//        double dv_tau_dy;
+//        double dv_normal_dy;
+//        double dT_dy;
 
-        vector<double> dy_dy(numberOfComponents);
+//        vector<double> dy_dy(numberOfComponents);
 
-        //учёт граничных условий
-        if (i == 0 || i == numberOfCells - 1)
-            fill(dy_dy.begin(), dy_dy.end(), border->get_dyc_dy());
+//        //учёт граничных условий
+//        if (i == 0 || i == numberOfCells - 1)
+//            fill(dy_dy.begin(), dy_dy.end(), border->get_dyc_dy());
 
-        if (i < numberOfCells / 2)
-        {
-            dT_dy = (points[i+1].temp - points[i].temp) / (2. * dh);
-            dv_tau_dy = (points[i+1].velocity_tau - points[i].velocity_tau) / (2. * dh);
-            dv_normal_dy = (points[i+1].velocity_normal - points[i].velocity_normal) / (2. * dh);
-            for (size_t j = 0; j < numberOfComponents; j++)
-                dy_dy[j] = (points[i + 1].fractionArray[j] - points[i].fractionArray[j]) / (2. * dh);
-        }
-        else
-        {
-            dT_dy = (points[i].temp - points[i-1].temp) / (2. * dh);
-            dv_tau_dy = (points[i].velocity_tau - points[i - 1].velocity_tau) / (2. * dh);
-            dv_normal_dy = (points[i].velocity_normal - points[i - 1].velocity_normal) / (2. * dh);
-            for (size_t j = 0; j < numberOfComponents; j++)
-                dy_dy[j] = (points[i].fractionArray[j] - points[i-1].fractionArray[j]) / (2. * dh);
-        }
-        // Расчет поточных членов
-        // .....
-        // сейчас так:
-        double etta = coeffSolver->shareViscositySimple(p1);
-        double lambda = coeffSolver->lambda(p1);
-        double bulk = coeffSolver->bulcViscositySimple(mixture, p1.temp, p1.density, p1.pressure);
+//        if (i < numberOfCells / 2)
+//        {
+//            dT_dy = (points[i+1].temp - points[i].temp) / (2. * dh);
+//            dv_tau_dy = (points[i+1].velocity_tau - points[i].velocity_tau) / (2. * dh);
+//            dv_normal_dy = (points[i+1].velocity_normal - points[i].velocity_normal) / (2. * dh);
+//            for (size_t j = 0; j < numberOfComponents; j++)
+//                dy_dy[j] = (points[i + 1].fractionArray[j] - points[i].fractionArray[j]) / (2. * dh);
+//        }
+//        else
+//        {
+//            dT_dy = (points[i].temp - points[i-1].temp) / (2. * dh);
+//            dv_tau_dy = (points[i].velocity_tau - points[i - 1].velocity_tau) / (2. * dh);
+//            dv_normal_dy = (points[i].velocity_normal - points[i - 1].velocity_normal) / (2. * dh);
+//            for (size_t j = 0; j < numberOfComponents; j++)
+//                dy_dy[j] = (points[i].fractionArray[j] - points[i-1].fractionArray[j]) / (2. * dh);
+//        }
+//        // Расчет поточных членов
+//        // .....
+//        // сейчас так:
+//        double etta = coeffSolver->shareViscositySimple(p1);
+//        double lambda = coeffSolver->lambda(p1);
+//        double bulk = coeffSolver->bulcViscositySimple(mixture, p1.temp, p1.density, p1.pressure);
 
-        for (size_t j = 0; j < mixture.NumberOfComponents; j++)
-        {
-            if (j != 0)
-                F[j][i] = -p1.density * mixture.getEffDiff(j) * dy_dy[j];
-            else
-                F[j][i] = p1.density * p1.velocity_normal;
-        }
-        F[v_tau][i] = p1.density * p1.velocity_tau * p1.velocity_normal - etta * dv_tau_dy;
-        F[v_normal][i] = p1.density * pow(p1.velocity_normal, 2) + p1.pressure - (bulk + 4./3. * etta) * dv_normal_dy;
-        F[energy][i] = 0;
-        for (size_t j = 0; j < numberOfComponents; j++)
-        {
-            F[energy][i] += -p1.density * mixture.getEffDiff(j) * dy_dy[j] * mixture.getEntalp(i);
-        }
-        F[energy][i] += -lambda * dT_dy - etta * p1.velocity_tau * dv_tau_dy + (p1.pressure - (bulk + 4./3. * etta) * dv_normal_dy) * p1.velocity_normal;
-    }
-}
+//        for (size_t j = 0; j < mixture.NumberOfComponents; j++)
+//        {
+//            if (j != 0)
+//                F[j][i] = -p1.density * mixture.getEffDiff(j) * dy_dy[j];
+//            else
+//                F[j][i] = p1.density * p1.velocity_normal;
+//        }
+//        F[v_tau][i] = p1.density * p1.velocity_tau * p1.velocity_normal - etta * dv_tau_dy;
+//        F[v_normal][i] = p1.density * pow(p1.velocity_normal, 2) + p1.pressure - (bulk + 4./3. * etta) * dv_normal_dy;
+//        F[energy][i] = 0;
+//        for (size_t j = 0; j < numberOfComponents; j++)
+//        {
+//            F[energy][i] += -p1.density * mixture.getEffDiff(j) * dy_dy[j] * mixture.getEntalp(i);
+//        }
+//        F[energy][i] += -lambda * dT_dy - etta * p1.velocity_tau * dv_tau_dy + (p1.pressure - (bulk + 4./3. * etta) * dv_normal_dy) * p1.velocity_normal;
+//    }
+//}
 
 void Soda::prepareVectorSizes()
 {

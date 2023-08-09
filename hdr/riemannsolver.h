@@ -14,6 +14,8 @@ enum RiemannSolverType
 struct RiemannSolver
 {
     RiemannSolver(){};
+    double maxSignalVelocity = 0;
+    void toMaxVelocity(double vel); // если ввести -1, то значение максимальной сокрости обнулится
     virtual void computeFlux(SystemOfEquation *system){};
     virtual void computeFlux(SystemOfEquation *system, double dt, double dh){};
 };

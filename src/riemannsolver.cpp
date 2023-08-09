@@ -156,6 +156,7 @@ const double gamma = 1.67;
 
 void HLLCSolver::computeFlux(SystemOfEquation* system)
 {
+    toMaxVelocity(-1); // для обнуления максимальной сигнальной скорости
     for (size_t i = 0; i < system->numberOfCells - 1; i++)
     {
         double u0, u1, v0, v1, a0, a1, rho0, rho1, p0, p1, E0, E1, H0, H1, avg_H, S0, S1, S_star, pvrs, p_star, q;
@@ -200,6 +201,7 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
         S0 = min(q0 - system->getSoundSpeed(i), avg_q - avg_c);
         S1 = max(q1 + system->getSoundSpeed(i+1), avg_q + avg_c);
 
+        toMaxVelocity(max(abs(S0),abs(S1)));
         //S0 = (avg_u - avg_a);
         //S1 = (avg_u + avg_a);
 
@@ -263,7 +265,7 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
 
 void HLLESolver::computeFlux(SystemOfEquation *system)
 {
-    double gamma = 1.4;
+    toMaxVelocity(-1); // для обнуления максимальной сигнальной скорости
     for(size_t i = 0 ; i < system->numberOfCells-1; i++)
     {
         double H0, H1, c0, c1, u0, u1, v0,v1,V0,V1, rho0, rho1, u_avg,v_avg, H_avg, c_avg, b0, b1, b_plus, b_minus;
@@ -296,6 +298,8 @@ void HLLESolver::computeFlux(SystemOfEquation *system)
 
         b0 = (std::min)({u_avg - c_avg, u0 - c0});
         b1 = (std::max)({u_avg + c_avg, u1 + c1});
+
+        toMaxVelocity(max(abs(b0),abs(b1)));
 
         b_plus = (std::max)({0., b1});
         b_minus = (std::min)({0., b0});
@@ -622,4 +626,16 @@ void HLLESolverSimen::computeFlux(SystemOfEquation *system)
             system->Flux[j][i] = f_hlle;
         }
     }
+}
+
+void RiemannSolver::toMaxVelocity(double vel)
+{
+    if(vel == -1)
+    {
+        maxSignalVelocity = 0;
+        return;
+    }
+    if(vel>maxSignalVelocity)
+        maxSignalVelocity = vel;
+    return;
 }

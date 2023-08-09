@@ -26,10 +26,10 @@ void GodunovSolver::solve()
 
         //записать данные, если это требуется
         //writePoints(T*1000000); // микросек
-        if(i%1 == 0)
+        if(i%10000 == 0)
         {
             std::cout<<i<<" iteration"<<std::endl;
-            writePoints(i); // микросек
+            writePoints(T*1000000); // микросек
         }
         //проверка точности
         if(isObserverWatching)
