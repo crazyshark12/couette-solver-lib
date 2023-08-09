@@ -27,8 +27,13 @@ private:
 struct DataReader
 {
 public:
-    DataReader(string pathName_);
+    DataReader(string pathName_):pathName(pathName_){};
+    bool read();
+    void getPoints(vector<macroParam> &points);
 private:
-        double dh = 1;
-        fs::path directory;
+    bool fillDataVector(vector<double> &data, string dataFileName);
+    vector<double> pres,vel,temp,density,vel_tau,vel_normal;
+    vector<macroParam> points;
+    string pathName;
+    double dh = 1;
 };
