@@ -16,10 +16,10 @@ struct AbstractSolver
 {
 public:
     AbstractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_, SystemOfEquationType type, RiemannSolverType riemannType);
-
+    AbstractSolver(Mixture mixture_, vector<macroParam> startParam_, solverParams solParam_, SystemOfEquationType type, RiemannSolverType riemannType);
     // запускает процесс решения задачи
     virtual void solve() = 0;
-
+    virtual void solveContinue(){};
     //устанавливает размер ячейки
     void setDelta_h(double dh);
 
@@ -61,8 +61,14 @@ protected:
     //заполняет начальные ячеки
     virtual void prepareSolving();
 
+    // функция для дозаполнения полей вектора points значениями скорости звука и параметрами смеси, которые не вытаскиваются из файлов расчёта
+    virtual void correctData();
+
+
     //подготавливает размеры всех векторов
     virtual void prepareVectorSizes();
+//    //подготавливает размеры всех векторов по заданным параметрам
+//    virtual void prepareVectorSizes();
 
     // устанавливает временной шаг
     void setDt();
@@ -100,4 +106,7 @@ protected:
     // через какое количество итераций наблюдатель должен проверять соотвествие
     //(берутся две соседних итерации, а не те, что разделены watcherIteration итерациями)
     int watcherIteration = 1;
+
+    // продолжается ли рассчёт? 0 - расчёт начинается с нуля, 1 - расчёт продолжается согласно данным из считанного файла
+    bool isContinue = 0;
 };

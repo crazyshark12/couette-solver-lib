@@ -3,8 +3,16 @@
 #include <omp.h>
 void GodunovSolver::solve()
 {
-    prepareSolving();
-    writePoints(-1);
+    if(!isContinue)
+    {
+        prepareSolving();
+        writePoints(-1);
+    }
+    else
+    {
+        prepareVectorSizes();
+        system->prepareSolving(points);
+    }
     double T = 0;
     for(size_t i  = 0; i < solParam.MaxIter; i++)
     {

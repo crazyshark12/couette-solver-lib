@@ -49,3 +49,58 @@ void DataWriter::setDelta_h(double dh_)
 {
     dh = dh_;
 }
+
+
+bool DataReader::read()
+{
+    if(!fillDataVector(pres,"/pressure.txt"))
+        return 0;
+    if(!fillDataVector(vel,"/velocity.txt"))
+        return 0;
+    if(!fillDataVector(temp,"/temp.txt"))
+        return 0;
+    if(!fillDataVector(density,"/density.txt"))
+        return 0;
+    if(!fillDataVector(vel_tau,"/velocity_tau.txt"))
+        return 0;
+    if(!fillDataVector(vel_normal,"/velocity_normal.txt"))
+        return 0;
+    return 1;
+}
+
+void DataReader::getPoints(vector<macroParam> &points)
+{
+    points.clear();
+    for(size_t i = 0; i < pres.size();i++)
+    {
+        macroParam tmp;
+        tmp.densityArray = {density[i]};
+        tmp.fractionArray = {1};
+        tmp.density      = density[i];
+        tmp.pressure     = pres[i];
+        tmp.velocity_tau     =  vel_tau[i];
+        tmp.velocity_normal  = vel_normal[i];
+        tmp.velocity = vel[i];
+        tmp.temp         = temp[i];
+        tmp.gas         ="Ar";
+        points.push_back(tmp);
+    }
+    return;
+}
+
+bool DataReader::fillDataVector(vector<double> &data, string dataFileName)
+{
+    std::ifstream file(pathName + dataFileName); // окрываем файл для чтения
+    if (!file.is_open())
+    {
+        cout<<"WARNING: no" << dataFileName <<" file to read"<<endl;
+        return 0;
+    }
+    double h, value;
+    while (file >> h >> value)
+    {
+        data.push_back(value);
+    }
+    file.close();     // закрываем файл
+    return 1;
+}

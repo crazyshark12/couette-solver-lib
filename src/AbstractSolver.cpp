@@ -4,6 +4,7 @@
 
 AbstractSolver::AbstractSolver(Mixture mixture_, macroParam startParam_, solverParams solParam_, SystemOfEquationType type, RiemannSolverType riemannType)
 {
+    isContinue = 0;
     mixture = mixture_;
     startParam=startParam_;
     solParam =solParam_;
@@ -14,6 +15,64 @@ AbstractSolver::AbstractSolver(Mixture mixture_, macroParam startParam_, solverP
         system = tmp;
     }
     if(type == SystemOfEquationType::soda)
+    {
+        auto *tmp = new Soda();
+        system = tmp;
+    }
+    switch(riemannType)
+    {
+    case RiemannSolverType::HLLCSolver:
+        {
+                riemannSolver = new struct HLLCSolver();
+                break;
+        }
+    case RiemannSolverType::HLLESolver:
+        {
+                riemannSolver = new struct HLLESolver();
+                break;
+        }
+    case RiemannSolverType::HLLIsentropic:
+        {
+                riemannSolver = new struct HLLIsentropic();
+                break;
+        }
+    case RiemannSolverType::HLLSimple:
+        {
+                riemannSolver = new struct HLLSimple();
+                break;
+        }
+    case RiemannSolverType::ExacRiemanSolver:
+        {
+                riemannSolver = new struct ExacRiemanSolver();
+                break;
+        }
+    case RiemannSolverType::HLLESolverSimen:
+        {
+                riemannSolver = new struct HLLESolverSimen();
+                break;
+        }
+    }
+    system->setBorderCondition(&border);
+    system->setCoeffSolver(&coeffSolver);
+    system->setMixture(mixture);
+    system->setNumberOfCells(solParam.NumCell);
+    system->setSolverParams(solParam);
+}
+
+AbstractSolver::AbstractSolver(Mixture mixture_, vector<macroParam> startParam_, solverParams solParam_, SystemOfEquationType type, RiemannSolverType riemannType)
+{
+    isContinue = 1;
+    mixture = mixture_;
+    points = startParam_; // отличие от предыдущей реализации
+    correctData();
+    solParam = solParam_;
+    delta_h = 0;
+    if(type == SystemOfEquationType::couette2)
+    {
+        auto *tmp = new Couette2();
+        system = tmp;
+    }
+    else if(type == SystemOfEquationType::soda)
     {
         auto *tmp = new Soda();
         system = tmp;
@@ -118,9 +177,18 @@ void AbstractSolver::prepareSolving()
     system->prepareSolving(points);
 }
 
+void AbstractSolver::correctData()
+{
+    for(size_t i = 0; i < points.size(); i++)
+    {
+        points[i].mixture = mixture;
+        points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
+    }
+    return;
+}
+
 void AbstractSolver::prepareVectorSizes()
 {
-    //solParam.NumCell += 2; // 2 - потому что две фиктивные ячейки
     points.resize(solParam.NumCell);
     for(size_t i = 0; i < points.size(); i++)
         points[i].densityArray.resize(mixture.NumberOfComponents);
@@ -136,8 +204,6 @@ void AbstractSolver::setDt()
         dt = solParam.CFL*delta_h/max;
     else
         dt = 0.000001;
-    //dt = 0.000001; // тут фиксированный шаг
-    //timeSolvind.push_back(dt/10.);
     timeSolvind.push_back(dt);
     return;
 }

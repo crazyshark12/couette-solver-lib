@@ -54,7 +54,7 @@ struct macroParam
     double temp         = 0;
     double tempIntr     = 0;
     double soundSpeed   = 0;
-    string gas         ="CO2";
+    string gas         ="Ar";
 };
 struct solverParams
 {
