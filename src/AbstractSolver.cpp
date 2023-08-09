@@ -67,8 +67,9 @@ void AbstractSolver::setStartCondition(macroParam start)
 void AbstractSolver::setBorderConditions(double up_velocity_, double up_temp_, double down_temp_)
 {
     border.up_velocity =  up_velocity_;
+    border.down_velocity = 0.;
     border.up_temp =  up_temp_;
-    border.down_temp =  down_temp_;
+    border.down_temp = down_temp_;
     return;
 }
 
@@ -119,6 +120,7 @@ void AbstractSolver::prepareSolving()
 
 void AbstractSolver::prepareVectorSizes()
 {
+    //solParam.NumCell += 2; // 2 - потому что две фиктивные ячейки
     points.resize(solParam.NumCell);
     for(size_t i = 0; i < points.size(); i++)
         points[i].densityArray.resize(mixture.NumberOfComponents);
@@ -128,15 +130,15 @@ void AbstractSolver::prepareVectorSizes()
 
 void AbstractSolver::setDt()
 {
-    double max = system->getMaxVelocity();  // это нужно чтобы правильно подобрать временной шаг, чтобы соблюдался критерий КФЛ
+    double max = riemannSolver->maxSignalVelocity;  // это нужно чтобы правильно подобрать временной шаг, чтобы соблюдался критерий КФЛ
     double dt;
     if(max!=0)
-        dt = solParam.CFL*pow(delta_h,1)/max;
+        dt = solParam.CFL*delta_h/max;
     else
         dt = 0.000001;
-    dt = 0.000001; // тут фиксированный шаг
+    //dt = 0.000001; // тут фиксированный шаг
+    //timeSolvind.push_back(dt/10.);
     timeSolvind.push_back(dt);
-    //timeSolvind.push_back(0.00001);
     return;
 }
 
@@ -171,10 +173,10 @@ void AbstractSolver::useBorder()
     points[0].density =points[1].density;
     points[0].densityArray =points[1].densityArray;
     points[0].fractionArray =points[1].fractionArray;
-    points[0].velocity_tau = -points[1].velocity_tau + 2*border.down_velocity;
-    points[0].velocity_normal = 0;
-    points[0].velocity = abs(points[0].velocity_tau);
-    points[0].temp = -points[1].temp +  2*border.down_temp;
+    points[0].velocity_tau = -points[1].velocity_tau + 2.*border.down_velocity;
+    points[0].velocity_normal = -points[1].velocity_normal;
+    points[0].velocity = sqrt(pow(points[1].velocity_tau,2) + pow(points[1].velocity_normal,2));;
+    points[0].temp = -points[1].temp +  2.*border.down_temp;
     // дополнительные рассчитываемые величины
     points[0].pressure = points[0].density * (UniversalGasConstant/mixture.molarMass()) * points[0].temp;
     points[0].soundSpeed = sqrt(solParam.Gamma*points[0].pressure/points[0].density);
@@ -185,10 +187,10 @@ void AbstractSolver::useBorder()
     points[solParam.NumCell-1].density =points[solParam.NumCell-2].density;
     points[solParam.NumCell-1].densityArray =points[solParam.NumCell-2].densityArray;
     points[solParam.NumCell-1].fractionArray =points[solParam.NumCell-2].fractionArray;
-    points[solParam.NumCell-1].velocity_tau = -points[solParam.NumCell-2].velocity_tau + 2*border.up_velocity;
-    points[solParam.NumCell-1].velocity_normal = 0;
-    points[solParam.NumCell-1].velocity = abs(points[solParam.NumCell-1].velocity_tau);
-    points[solParam.NumCell-1].temp = -points[solParam.NumCell-2].temp +  2*border.up_temp;
+    points[solParam.NumCell-1].velocity_tau = -points[solParam.NumCell-2].velocity_tau + 2.*border.up_velocity;
+    points[solParam.NumCell-1].velocity_normal = -points[solParam.NumCell-2].velocity_normal;
+    points[solParam.NumCell-1].velocity = sqrt(pow(points[solParam.NumCell-1].velocity_tau,2) + pow(points[solParam.NumCell-1].velocity_normal,2));
+    points[solParam.NumCell-1].temp = -points[solParam.NumCell-2].temp +  2.*border.up_temp;
     // дополнительные рассчитываемые величины
     points[solParam.NumCell-1].pressure = points[solParam.NumCell-1].density * (UniversalGasConstant/mixture.molarMass()) * points[solParam.NumCell-1].temp;
     points[solParam.NumCell-1].soundSpeed = sqrt(solParam.Gamma*points[solParam.NumCell-1].pressure/points[solParam.NumCell-1].density);

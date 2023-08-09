@@ -23,3 +23,12 @@ private:
     double dh = 1;
     fs::path directory;
 };
+
+struct DataReader
+{
+public:
+    DataReader(string pathName_);
+private:
+        double dh = 1;
+        fs::path directory;
+};
