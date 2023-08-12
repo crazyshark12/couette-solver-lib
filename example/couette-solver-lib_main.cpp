@@ -23,7 +23,7 @@ int main()
     startParam.temp = 800; //140
 
     solverParams solParam;
-    solParam.NumCell     = 102;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 1002;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 1;    // Число Куранта
     solParam.MaxIter     = 100000000; // максимальное кол-во итареций
@@ -37,15 +37,15 @@ int main()
     // если не использовать setWriter, то записи не будет, но папка создастся, ибо она в конструкторе зашита
     // он автоматически очищает папку перед новым рассчётом
     DataWriter writer("D:/couette/couette");
-    DataReader reader("D:/couette/couette/prev_data");
-    reader.read();
-    vector<macroParam> startParameters;
-    reader.getPoints(startParameters);
+    //DataReader reader("D:/couette/couette/prev_data");
+    //reader.read();
+    //vector<macroParam> startParameters;
+    //reader.getPoints(startParameters);
     double T1wall = 1000;
     double T2wall = 1000;
     double velocity = 300;
     double h = 1;
-    GodunovSolver solver(mixture,startParameters,solParam, SystemOfEquationType::couette2, RiemannSolverType::HLLESolver);
+    GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2, RiemannSolverType::HLLESolver);
     writer.setDelta_h(h / (solParam.NumCell-2));
     solver.setWriter(&writer);
     solver.setObserver(&watcher);
