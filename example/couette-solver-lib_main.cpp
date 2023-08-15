@@ -25,7 +25,7 @@ int main()
     startParam.velocity_tau = 100;
 
     solverParams solParam;
-    solParam.NumCell     = 100;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 1000;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 1;    // Число Куранта
     solParam.MaxIter     = 100000000; // максимальное кол-во итареций
@@ -46,7 +46,7 @@ int main()
     double T1wall = 1000;
     double T2wall = 1000;
     double velocity = 300;
-    double h = 0.01;
+    double h = 1;
     GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2, RiemannSolverType::HLLESolver);
     writer.setDelta_h(h / (solParam.NumCell));
     solver.setWriter(&writer);

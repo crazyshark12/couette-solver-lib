@@ -230,8 +230,6 @@ void AbstractSolver::updatePoints()
         points[i].temp = system->getTemp(i);
     }
     useBorder();
-
-    system->updateBorderU(points);
 }
 
 void AbstractSolver::useBorder()
