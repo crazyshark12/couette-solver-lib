@@ -201,7 +201,7 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
         S0 = min(q0 - system->getSoundSpeed(i), avg_q - avg_c);
         S1 = max(q1 + system->getSoundSpeed(i+1), avg_q + avg_c);
 
-        toMaxVelocity(max(abs(S0),abs(S1)));
+        toMaxVelocity(max(fabs(S0),fabs(S1)));
         //S0 = (avg_u - avg_a);
         //S1 = (avg_u + avg_a);
 
@@ -284,8 +284,8 @@ void HLLESolver::computeFlux(SystemOfEquation *system)
         H0 = system->getEnergy(i) + system->getPressure(i)/system->getDensity(i);
         H1 = system->getEnergy(i+1) + system->getPressure(i+1)/system->getDensity(i+1);
 
-        c0 = sqrt((gamma - 1)*(H0 - 0.5 * pow(V0,2))); // TODO 5/3 = gamma
-        c1 = sqrt((gamma - 1)*(H1 - 0.5 * pow(V1,2)));
+        c0 = sqrt((gamma - 1.)*(H0 - 0.5 * pow(V0,2))); // TODO 5/3 = gamma
+        c1 = sqrt((gamma - 1.)*(H1 - 0.5 * pow(V1,2)));
 
         rho0 = sqrt(system->getDensity(i));
         rho1 = sqrt(system->getDensity(i+1));
@@ -299,7 +299,7 @@ void HLLESolver::computeFlux(SystemOfEquation *system)
         b0 = (std::min)({u_avg - c_avg, u0 - c0});
         b1 = (std::max)({u_avg + c_avg, u1 + c1});
 
-        toMaxVelocity(max(abs(b0),abs(b1)));
+        toMaxVelocity(max(fabs(b0),fabs(b1)));
 
         b_plus = (std::max)({0., b1});
         b_minus = (std::min)({0., b0});
@@ -319,8 +319,6 @@ void HLLSimple::computeFlux(SystemOfEquation *system, double dt, double dh)
         double SR, SL, FL, FR, UL, UR;
         SR = dh/dt;
         SL = -dh/dt;
-        if(i == 49)
-            double x  = 3 ;
         for(size_t j = 0; j < system->systemOrder; j++)
         {
             FR = system->F[j][i+1];
@@ -452,7 +450,7 @@ macroParam ExacRiemanSolver::exacRiemanSolver(macroParam left, macroParam right,
             f_d=f_d + temp1* ( 1.0-0.5* ( p_star-right.pressure ) /
                          ( p_star+ ( Gamma-1.0 ) / ( Gamma+1.0 ) *right.pressure ) );
         double p_new = p_star - (f1+f2 - (left.velocity - right.velocity))/f_d;
-        if(abs(p_new - p_star)/(0.5*abs(p_new + p_star)) < TOL)
+        if(fabs(p_new - p_star)/(0.5*abs(p_new + p_star)) < TOL)
             break;
         p_star = p_new;
     }
@@ -503,6 +501,8 @@ macroParam ExacRiemanSolver::exacRiemanSolver(macroParam left, macroParam right,
             { // the u is before the shock
                 ret.density  = left.density;
                 ret.velocity = left.velocity;
+                ret.velocity_tau = left.velocity_tau;
+                ret.velocity_normal = left.velocity_normal;
                 ret.pressure = left.pressure;
             }
             else  //% the u is behind the shock

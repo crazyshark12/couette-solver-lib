@@ -18,18 +18,20 @@ int main()
 
     macroParam startParam(mixture);
     startParam.fractionArray[0] = 1;
-    startParam.pressure = 218563.81; //218563.81
-    //startParam.densityArray[0] = argon.density;
-    startParam.temp = 800; //140
+    //startParam.pressure = 218563.81; //218563.81
+    startParam.densityArray[0] = argon.density;
+    startParam.density = argon.density;
+    startParam.temp = 140; //140
+    startParam.velocity_tau = 100;
 
     solverParams solParam;
-    solParam.NumCell     = 1002;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 100;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 1;    // Число Куранта
     solParam.MaxIter     = 100000000; // максимальное кол-во итареций
-    solParam.Ma       = 0.2;    // Число маха
+    solParam.Ma       = 0.1;    // Число маха
 
-    double precision = 0.000001; // точность
+    double precision = 0.001; // точность
     Observer watcher(precision);
     watcher.setPeriodicity(1000);
 
@@ -37,19 +39,19 @@ int main()
     // если не использовать setWriter, то записи не будет, но папка создастся, ибо она в конструкторе зашита
     // он автоматически очищает папку перед новым рассчётом
     DataWriter writer("D:/couette/couette");
-    //DataReader reader("D:/couette/couette/prev_data");
-    //reader.read();
-    //vector<macroParam> startParameters;
-    //reader.getPoints(startParameters);
+    DataReader reader("D:/couette/couette/prev_data");
+    reader.read();
+    vector<macroParam> startParameters;
+    reader.getPoints(startParameters);
     double T1wall = 1000;
     double T2wall = 1000;
     double velocity = 300;
-    double h = 1;
+    double h = 0.01;
     GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2, RiemannSolverType::HLLESolver);
-    writer.setDelta_h(h / (solParam.NumCell-2));
+    writer.setDelta_h(h / (solParam.NumCell));
     solver.setWriter(&writer);
     solver.setObserver(&watcher);
-    solver.setDelta_h(h / (solParam.NumCell-2));
+    solver.setDelta_h(h / (solParam.NumCell));
     solver.setBorderConditions(velocity,T2wall,T1wall);
     solver.solve();
 }

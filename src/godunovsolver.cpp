@@ -12,6 +12,7 @@ void GodunovSolver::solve()
     {
         prepareVectorSizes();
         system->prepareSolving(points);
+        writePoints(-1);
     }
     double T = 0;
     for(size_t i  = 0; i < solParam.MaxIter; i++)
@@ -34,7 +35,7 @@ void GodunovSolver::solve()
 
         //записать данные, если это требуется
         //writePoints(T*1000000); // микросек
-        if(i%10000 == 0)
+        if(i%1 == 0)
         {
             std::cout<<i<<" iteration"<<std::endl;
             writePoints(T*1000000); // микросек

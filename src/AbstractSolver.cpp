@@ -164,13 +164,14 @@ void AbstractSolver::prepareSolving()
         points[i].mixture = mixture;
         points[i].temp = startParam.temp;
         points[i].fractionArray =  startParam.fractionArray;
-        points[i].pressure = startParam.pressure;
-        points[i].density = startParam.pressure * mixture.molarMass()/(UniversalGasConstant * startParam.temp);
+        points[i].density = startParam.density;
+        points[i].pressure = points[i].density*UniversalGasConstant * startParam.temp/mixture.molarMass();
+        //points[i].density = startParam.pressure * mixture.molarMass()/(UniversalGasConstant * startParam.temp);
         points[i].densityArray[0] =  points[i].density;
         points[i].soundSpeed = sqrt(solParam.Gamma*points[i].pressure/points[i].density);
-        points[i].velocity_tau = solParam.Ma*points[i].soundSpeed;
+        points[i].velocity_tau = startParam.velocity_tau;
         points[i].velocity_normal = 0;
-        points[i].velocity = abs(points[i].velocity_tau);
+        points[i].velocity = fabs(points[i].velocity_tau);
     }
     // для points[0] и points[solParam.NumCell-1] (!важно что идёт после цикла!)
     useBorder();
@@ -229,6 +230,7 @@ void AbstractSolver::updatePoints()
         points[i].temp = system->getTemp(i);
     }
     useBorder();
+
     system->updateBorderU(points);
 }
 
@@ -241,7 +243,7 @@ void AbstractSolver::useBorder()
     points[0].fractionArray =points[1].fractionArray;
     points[0].velocity_tau = -points[1].velocity_tau + 2.*border.down_velocity;
     points[0].velocity_normal = -points[1].velocity_normal;
-    points[0].velocity = sqrt(pow(points[1].velocity_tau,2) + pow(points[1].velocity_normal,2));;
+    points[0].velocity = sqrt(pow(points[0].velocity_tau,2) + pow(points[0].velocity_normal,2));
     points[0].temp = -points[1].temp +  2.*border.down_temp;
     // дополнительные рассчитываемые величины
     points[0].pressure = points[0].density * (UniversalGasConstant/mixture.molarMass()) * points[0].temp;
@@ -250,9 +252,9 @@ void AbstractSolver::useBorder()
 
     //solParam.NumCell-1
     points[solParam.NumCell-1].mixture = mixture;
-    points[solParam.NumCell-1].density =points[solParam.NumCell-2].density;
-    points[solParam.NumCell-1].densityArray =points[solParam.NumCell-2].densityArray;
-    points[solParam.NumCell-1].fractionArray =points[solParam.NumCell-2].fractionArray;
+    points[solParam.NumCell-1].density = points[solParam.NumCell-2].density;
+    points[solParam.NumCell-1].densityArray = points[solParam.NumCell-2].densityArray;
+    points[solParam.NumCell-1].fractionArray = points[solParam.NumCell-2].fractionArray;
     points[solParam.NumCell-1].velocity_tau = -points[solParam.NumCell-2].velocity_tau + 2.*border.up_velocity;
     points[solParam.NumCell-1].velocity_normal = -points[solParam.NumCell-2].velocity_normal;
     points[solParam.NumCell-1].velocity = sqrt(pow(points[solParam.NumCell-1].velocity_tau,2) + pow(points[solParam.NumCell-1].velocity_normal,2));
