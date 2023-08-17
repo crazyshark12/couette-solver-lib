@@ -125,8 +125,8 @@ void AbstractSolver::setStartCondition(macroParam start)
 
 void AbstractSolver::setBorderConditions(double up_velocity_, double up_temp_, double down_temp_)
 {
-    border.up_velocity =  up_velocity_;
-    border.down_velocity = 0.;
+    border.up_velocity = up_velocity_;
+    border.down_velocity = 300.;
     border.up_temp =  up_temp_;
     border.down_temp = down_temp_;
     return;
@@ -241,10 +241,10 @@ void AbstractSolver::useBorder()
     points[0].fractionArray =points[1].fractionArray;
     points[0].velocity_tau = -points[1].velocity_tau + 2.*border.down_velocity;
     points[0].velocity_normal = -points[1].velocity_normal;
-    points[0].velocity = sqrt(pow(points[0].velocity_tau,2) + pow(points[0].velocity_normal,2));
+    points[0].velocity = sqrt(pow(fabs(points[0].velocity_tau),2) + pow(fabs(points[0].velocity_normal),2));
     points[0].temp = -points[1].temp +  2.*border.down_temp;
     // дополнительные рассчитываемые величины
-    points[0].pressure = points[0].density * (UniversalGasConstant/mixture.molarMass()) * points[0].temp;
+    points[0].pressure = points[0].density * UniversalGasConstant/mixture.molarMass() * points[0].temp;
     points[0].soundSpeed = sqrt(solParam.Gamma*points[0].pressure/points[0].density);
 
 
@@ -258,10 +258,8 @@ void AbstractSolver::useBorder()
     points[solParam.NumCell-1].velocity = sqrt(pow(points[solParam.NumCell-1].velocity_tau,2) + pow(points[solParam.NumCell-1].velocity_normal,2));
     points[solParam.NumCell-1].temp = -points[solParam.NumCell-2].temp +  2.*border.up_temp;
     // дополнительные рассчитываемые величины
-    points[solParam.NumCell-1].pressure = points[solParam.NumCell-1].density * (UniversalGasConstant/mixture.molarMass()) * points[solParam.NumCell-1].temp;
+    points[solParam.NumCell-1].pressure = points[solParam.NumCell-1].density * UniversalGasConstant/mixture.molarMass() * points[solParam.NumCell-1].temp;
     points[solParam.NumCell-1].soundSpeed = sqrt(solParam.Gamma*points[solParam.NumCell-1].pressure/points[solParam.NumCell-1].density);
-
-
 }
 
 bool AbstractSolver::observerCheck(size_t currentIteration)

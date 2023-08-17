@@ -50,12 +50,12 @@ double CoeffSolver::getOmega22(Mixture mix, double T)
 
 double CoeffSolver::bulcViscositySimple(Mixture mix,double currentT, double density, double pressure)
 {
-    double Nav = 6.02214129e23;
+    //double Nav = 6.02214129e23;
     double n = density/mix.mass(0);
     double Crot = kB/mix.mass(0);
     double Ctr = 2.0*Crot/3.0;
     double Cu = Crot + Ctr;
-    double F = 1+ pow(M_PI,3./2.)/2.*pow(kB*currentT/2,-1/2.) + (pow(M_PI,2)/4. +2.)*pow(currentT/mix.epsilonDevK(0),-1) + pow(M_PI,3./2.)*pow(currentT/mix.epsilonDevK(0),-3./2.);
+    double F = 1+ pow(M_PI,3./2.)/2.*pow(kB*currentT/2.,-1/2.) + (pow(M_PI,2)/4. +2.)*pow(currentT/mix.epsilonDevK(0),-1) + pow(M_PI,3./2.)*pow(currentT/mix.epsilonDevK(0),-3./2.);
     double ZettaRot = ZettaInf/F;
     double tauR = (ZettaRot*M_PI*shareViscosityOmega(mix, currentT)/(4.*pressure));
     double Brot = (3.*Crot)/(2.*n*Cu*tauR);

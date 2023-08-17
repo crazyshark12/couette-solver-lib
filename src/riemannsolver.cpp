@@ -279,10 +279,11 @@ void HLLESolver::computeFlux(SystemOfEquation *system)
         V0 = sqrt(pow(u0,2) + pow(v0,2));
         V1 = sqrt(pow(u1,2) + pow(v1,2));
 
-//        H0 = (5*points[i].pressure)/(2*U1[0][i]) + pow(V0,2)/2;
-//        H1 = (5*points[i+1].pressure)/(2*U1[0][i+1])+ pow(V1,2)/2;
+//        H0 = (system->getPressure(i))/(system->getDensity(i)) + pow(V0,2)/2;
+//        H1 = (system->getPressure(i+1))/(system->getDensity(i+1))+ pow(V1,2)/2;
         H0 = system->getEnergy(i) + system->getPressure(i)/system->getDensity(i);
         H1 = system->getEnergy(i+1) + system->getPressure(i+1)/system->getDensity(i+1);
+
 
         c0 = sqrt((gamma - 1.)*(H0 - 0.5 * pow(V0,2))); // TODO 5/3 = gamma
         c1 = sqrt((gamma - 1.)*(H1 - 0.5 * pow(V1,2)));

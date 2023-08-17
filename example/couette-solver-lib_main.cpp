@@ -21,11 +21,11 @@ int main()
     //startParam.pressure = 218563.81; //218563.81
     startParam.densityArray[0] = argon.density;
     startParam.density = argon.density;
-    startParam.temp = 140; //140
+    startParam.temp = 900; //140
     startParam.velocity_tau = 100;
 
     solverParams solParam;
-    solParam.NumCell     = 1000;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 500;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 1;    // Число Куранта
     solParam.MaxIter     = 100000000; // максимальное кол-во итареций
