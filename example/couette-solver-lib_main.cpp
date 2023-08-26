@@ -9,7 +9,7 @@ int main()
 {
     MixtureComponent argon;
     argon.name = "Ar";
-    argon.density = 1.7839;
+    argon.density = 0.800773;
     argon.molarMass = 0.039948;
     argon.mass = 6.633521356992E-26;
     argon.epsilonDevK = 1.8845852298E-21/kB; //! Mistake
@@ -22,16 +22,16 @@ int main()
     startParam.densityArray[0] = argon.density;
     startParam.density = argon.density;
     startParam.temp = 900; //140
-    startParam.velocity_tau = 100;
+    startParam.velocity_tau = 0;
 
     solverParams solParam;
-    solParam.NumCell     = 202;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 502;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 0.9;    // Число Куранта
     solParam.MaxIter     = 10000000; // максимальное кол-во итареций
     solParam.Ma       = 0.1;    // Число маха
 
-    double precision = 0.0001; // точность
+    double precision = 0.0025; // точность
     Observer watcher(precision);
     watcher.setPeriodicity(10000);
 

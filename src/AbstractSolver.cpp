@@ -236,7 +236,7 @@ void AbstractSolver::useBorder()
 {
     //0
     points[0].mixture = mixture;
-    points[0].density =points[1].density;
+    points[0].pressure =points[1].pressure;
     points[0].densityArray =points[1].densityArray;
     points[0].fractionArray =points[1].fractionArray;
     points[0].velocity_tau = -points[1].velocity_tau + 2.*border.down_velocity;
@@ -244,13 +244,13 @@ void AbstractSolver::useBorder()
     points[0].velocity = sqrt(pow(fabs(points[0].velocity_tau),2) + pow(fabs(points[0].velocity_normal),2));
     points[0].temp = -points[1].temp +  2.*border.down_temp;
     // дополнительные рассчитываемые величины
-    points[0].pressure = points[0].density * UniversalGasConstant/mixture.molarMass() * points[0].temp;
+    points[0].density = points[0].pressure * mixture.molarMass() /UniversalGasConstant / points[0].temp;
     points[0].soundSpeed = sqrt(solParam.Gamma*points[0].pressure/points[0].density);
 
 
     //solParam.NumCell-1
     points[solParam.NumCell-1].mixture = mixture;
-    points[solParam.NumCell-1].density = points[solParam.NumCell-2].density;
+    points[solParam.NumCell-1].pressure = points[solParam.NumCell-2].pressure;
     points[solParam.NumCell-1].densityArray = points[solParam.NumCell-2].densityArray;
     points[solParam.NumCell-1].fractionArray = points[solParam.NumCell-2].fractionArray;
     points[solParam.NumCell-1].velocity_tau = -points[solParam.NumCell-2].velocity_tau + 2.*border.up_velocity;
@@ -258,7 +258,7 @@ void AbstractSolver::useBorder()
     points[solParam.NumCell-1].velocity = sqrt(pow(points[solParam.NumCell-1].velocity_tau,2) + pow(points[solParam.NumCell-1].velocity_normal,2));
     points[solParam.NumCell-1].temp = -points[solParam.NumCell-2].temp +  2.*border.up_temp;
     // дополнительные рассчитываемые величины
-    points[solParam.NumCell-1].pressure = points[solParam.NumCell-1].density * UniversalGasConstant/mixture.molarMass() * points[solParam.NumCell-1].temp;
+    points[solParam.NumCell-1].density = points[solParam.NumCell-1].pressure * mixture.molarMass() /UniversalGasConstant / points[solParam.NumCell-1].temp;
     points[solParam.NumCell-1].soundSpeed = sqrt(solParam.Gamma*points[solParam.NumCell-1].pressure/points[solParam.NumCell-1].density);
 }
 
