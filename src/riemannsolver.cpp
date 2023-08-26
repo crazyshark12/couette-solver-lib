@@ -159,7 +159,7 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
     toMaxVelocity(-1); // для обнуления максимальной сигнальной скорости
     for (size_t i = 0; i < system->numberOfCells - 1; i++)
     {
-        double u0, u1, v0, v1, a0, a1, rho0, rho1, p0, p1, E0, E1, H0, H1, avg_H, S0, S1, S_star, pvrs, p_star, q;
+        double u0, u1, v0, v1, a0, a1, rho0, rho1, p0, p1, E0, E1, H0, H1, avg_H, S0, S1, S_star, pvrs, p_star, q, vLeft, vRight;
         vector<double> U_star_0(system->systemOrder), U_star_1(system->systemOrder);
         double avg_a, avg_u, avg_v, avg_rho, avg_p, avg_q, avg_c;
 
@@ -170,9 +170,12 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
         v0 = system->getVelocityTau(i);
         v1 = system->getVelocityTau(i + 1);
 
+        vLeft = sqrt(pow(u0,2) + pow(v0,2));
+        vRight = sqrt(pow(u1,2) + pow(v1,2));
+
         rho0 = sqrt(system->getDensity(i));
         rho1 = sqrt(system->getDensity(i + 1));
-        avg_rho = (system->getDensity(i) + system->getDensity(i + 1)) / 2.;
+//        avg_rho = (system->getDensity(i) + system->getDensity(i + 1)) / 2.;
 
         avg_u = (rho0 * u0 + rho1 * u1) / (rho0 + rho1);
         //        H0 = (3*points[i].pressure)/(2*U1[0][i]);
@@ -182,24 +185,29 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
 
         p0 = system->getPressure(i);
         p1 = system->getPressure(i + 1);
-        avg_p = (p0 + p1) / 2.;
+//        avg_p = (p0 + p1) / 2.;
 
-        H0 = (E0 + p0) / system->getDensity(i);
-        H1 = (E1 + p1) / system->getDensity(i + 1);
-        avg_H = (rho0 * H0 + rho1 * H1) / (rho0 + rho1);
-        avg_a = sqrt((gamma - 1.) * (avg_H - 0.5 * pow(avg_u, 2)));
+        H0 = (E0 - pow(vLeft,2) + p0) / system->getDensity(i); //! Mistake, enthalpy is calculated on the basis of internal energy
+        H1 = (E1 - pow(vRight,2) + p1) / system->getDensity(i + 1);
+//        avg_H = (rho0 * H0 + rho1 * H1) / (rho0 + rho1);
+//        avg_a = sqrt((gamma - 1.) * (avg_H - 0.5 * pow(avg_u, 2)));
 
         double R_rho = rho1 / rho0;
         avg_u = (u0 + u1 * R_rho) / (1 + R_rho);
         avg_v = (v0 + v1 * R_rho) / (1 + R_rho);
         avg_H = (H0 + H1 * R_rho) / (1 + R_rho);
-        avg_c = sqrt((gamma - 1.) * (avg_H - 0.5 *(pow(avg_u, 2) + pow(avg_v, 2))));
-        avg_q = avg_v;
-        double q0 = v0;
-        double q1 = v1;
+        avg_c = sqrt((gamma - 1.) * (avg_H - 0.5 * pow(avg_u, 2)));
+        avg_q = avg_u;
 
-        S0 = min(q0 - system->getSoundSpeed(i), avg_q - avg_c);
-        S1 = max(q1 + system->getSoundSpeed(i+1), avg_q + avg_c);
+        a0 = sqrt((gamma - 1.) * (H0 - 0.5 * pow(u0, 2)));
+        a1 = sqrt((gamma - 1.) * (H1 - 0.5 * pow(u1, 2)));
+        double q0 = u0;
+        double q1 = u1;
+
+//        Davis relations:
+
+        S0 = min(q0 - a0, q1 - a1);
+        S1 = max(q0 + a0, q1 + a1);
 
         toMaxVelocity(max(fabs(S0),fabs(S1)));
         //S0 = (avg_u - avg_a);
@@ -281,8 +289,8 @@ void HLLESolver::computeFlux(SystemOfEquation *system)
 
 //        H0 = (system->getPressure(i))/(system->getDensity(i)) + pow(V0,2)/2;
 //        H1 = (system->getPressure(i+1))/(system->getDensity(i+1))+ pow(V1,2)/2;
-        H0 = system->getEnergy(i) + system->getPressure(i)/system->getDensity(i);
-        H1 = system->getEnergy(i+1) + system->getPressure(i+1)/system->getDensity(i+1);
+        H0 = system->getEnergy(i) - pow(V0,2) + system->getPressure(i)/system->getDensity(i); //! Mistake (the same for enthalpy)
+        H1 = system->getEnergy(i+1) - pow(V1,2) + system->getPressure(i+1)/system->getDensity(i+1);
 
 
         c0 = sqrt((gamma - 1.)*(H0 - 0.5 * pow(V0,2))); // TODO 5/3 = gamma

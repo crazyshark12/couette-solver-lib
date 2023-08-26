@@ -12,7 +12,7 @@ int main()
     argon.density = 1.7839;
     argon.molarMass = 0.039948;
     argon.mass = 6.633521356992E-26;
-    argon.epsilonDevK = 1.8845852298E-21;
+    argon.epsilonDevK = 1.8845852298E-21/kB; //! Mistake
     argon.sigma = 3.33E-10;
     Mixture mixture({argon});
 
@@ -25,21 +25,21 @@ int main()
     startParam.velocity_tau = 100;
 
     solverParams solParam;
-    solParam.NumCell     = 500;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 202;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
-    solParam.CFL      = 1;    // Число Куранта
-    solParam.MaxIter     = 100000000; // максимальное кол-во итареций
+    solParam.CFL      = 0.9;    // Число Куранта
+    solParam.MaxIter     = 10000000; // максимальное кол-во итареций
     solParam.Ma       = 0.1;    // Число маха
 
-    double precision = 0.001; // точность
+    double precision = 0.0001; // точность
     Observer watcher(precision);
-    watcher.setPeriodicity(1000);
+    watcher.setPeriodicity(10000);
 
     // это меняешь под себя. Он так создаст папку data
     // если не использовать setWriter, то записи не будет, но папка создастся, ибо она в конструкторе зашита
     // он автоматически очищает папку перед новым рассчётом
-    DataWriter writer("D:/couette/couette");
-    DataReader reader("D:/couette/couette/prev_data");
+    DataWriter writer("D:/main/work_materials/CdExamples/couette-mark/couette-solver-lib");
+    DataReader reader("D:/main/work_materials/CdExamples/couette-mark/couette-solver-lib/prev_data");
     reader.read();
     vector<macroParam> startParameters;
     reader.getPoints(startParameters);

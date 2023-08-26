@@ -22,10 +22,10 @@ bool Observer::checkDifference(vector<macroParam> param)
     auto size = param.size();
     for(size_t i = 0; i < size; i++)
     {
-        double d_temp = std::abs(previousParam[i].temp - param[i].temp);
-        double d_rho = std::abs(previousParam[i].density - param[i].density);
-        double d_pressure = std::abs(previousParam[i].pressure - param[i].pressure);
-        double d_velocity = std::abs(previousParam[i].velocity_tau - param[i].velocity_tau);
+        double d_temp = std::fabs(previousParam[i].temp - param[i].temp);
+        double d_rho = std::fabs(previousParam[i].density - param[i].density);
+        double d_pressure = std::fabs(previousParam[i].pressure - param[i].pressure);
+        double d_velocity = std::fabs(previousParam[i].velocity_tau - param[i].velocity_tau);
         double d_densityArray = 0;
         double d_fractionArray = 0;
         for(size_t j = 0; j < param[i].mixture.NumberOfComponents; j++)

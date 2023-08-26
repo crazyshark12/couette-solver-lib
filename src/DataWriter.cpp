@@ -26,7 +26,7 @@ void DataWriter::writeData(vector<macroParam> data, double time)
     ofstream temp(localDir/"temp.txt",std::ios::out);
     ofstream density(localDir/"density.txt",std::ios::out);
 
-    ofstream e(localDir/"e.txt",std::ios::out);
+//    ofstream e(localDir/"e.txt",std::ios::out);
 
     for(size_t i = 0; i < data.size(); i++)
     {
@@ -36,9 +36,9 @@ void DataWriter::writeData(vector<macroParam> data, double time)
         velocity_normal<<dh*i<<" "<<data[i].velocity_normal<<endl;
         temp<<dh*i<<" "<<data[i].temp<<endl;
         density<<dh*i<<" "<<data[i].density<<endl;
-        double gamma = 1.4;
-        double e_ = data[i].pressure/((gamma - 1) * data[i].density);
-        e<<dh*i<<" "<<e_<<endl;
+//        double gamma = 1.4;
+//        double e_ = data[i].pressure/((gamma - 1) * data[i].density);
+//        e<<dh*i<<" "<<e_<<endl;
     }
     pressure.close();
     velocity.close();

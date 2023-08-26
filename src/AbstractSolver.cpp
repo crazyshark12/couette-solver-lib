@@ -126,7 +126,7 @@ void AbstractSolver::setStartCondition(macroParam start)
 void AbstractSolver::setBorderConditions(double up_velocity_, double up_temp_, double down_temp_)
 {
     border.up_velocity = up_velocity_;
-    border.down_velocity = 300.;
+    border.down_velocity = 0.;
     border.up_temp =  up_temp_;
     border.down_temp = down_temp_;
     return;
