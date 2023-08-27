@@ -157,7 +157,8 @@ const double gamma = 1.67;
 void HLLCSolver::computeFlux(SystemOfEquation* system)
 {
     toMaxVelocity(-1); // для обнуления максимальной сигнальной скорости
-    for (size_t i = 0; i < system->numberOfCells - 1; i++)
+    #pragma omp parallel for schedule(static)
+    for (int i = 0; i < system->numberOfCells - 1; i++)
     {
         double u0, u1, v0, v1, a0, a1, rho0, rho1, p0, p1, E0, E1, H0, H1, avg_H, S0, S1, S_star, pvrs, p_star, q, vLeft, vRight;
         vector<double> U_star_0(system->systemOrder), U_star_1(system->systemOrder);
@@ -274,7 +275,8 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
 void HLLESolver::computeFlux(SystemOfEquation *system)
 {
     toMaxVelocity(-1); // для обнуления максимальной сигнальной скорости
-    for(size_t i = 0 ; i < system->numberOfCells-1; i++)
+    #pragma omp parallel for schedule(static)
+    for(int i = 0 ; i < system->numberOfCells-1; i++)
     {
         double H0, H1, c0, c1, u0, u1, v0,v1,V0,V1, rho0, rho1, u_avg,v_avg, H_avg, c_avg, b0, b1, b_plus, b_minus;
 
@@ -293,7 +295,7 @@ void HLLESolver::computeFlux(SystemOfEquation *system)
         H1 = system->getEnergy(i+1) - pow(V1,2) + system->getPressure(i+1)/system->getDensity(i+1);
 
 
-        c0 = sqrt((gamma - 1.)*(H0 - 0.5 * pow(V0,2))); // TODO 5/3 = gamma
+        c0 = sqrt((gamma - 1.)*(H0 - 0.5 * pow(V0,2)));
         c1 = sqrt((gamma - 1.)*(H1 - 0.5 * pow(V1,2)));
 
         rho0 = sqrt(system->getDensity(i));
@@ -303,7 +305,7 @@ void HLLESolver::computeFlux(SystemOfEquation *system)
         v_avg = (rho0 * v0 + rho1 * v1) / (rho0 + rho1);
 
         H_avg = (rho0 * H0 + rho1 * H1) / (rho0 + rho1);
-        c_avg = sqrt((gamma)*(H_avg - 0.5 * (pow(u_avg,2) + pow(v_avg,2)))); // TODO 5/3 = gamma
+        c_avg = sqrt((gamma)*(H_avg - 0.5 * (pow(u_avg,2) + pow(v_avg,2))));
 
         b0 = (std::min)({u_avg - c_avg, u0 - c0});
         b1 = (std::max)({u_avg + c_avg, u1 + c1});
@@ -323,7 +325,8 @@ void HLLESolver::computeFlux(SystemOfEquation *system)
 
 void HLLSimple::computeFlux(SystemOfEquation *system, double dt, double dh)
 {
-    for(size_t i = 0 ; i < system->numberOfCells - 1; i++)
+    #pragma omp parallel for schedule(static)
+    for(int i = 0 ; i < system->numberOfCells - 1; i++)
     {
         double SR, SL, FL, FR, UL, UR;
         SR = dh/dt;

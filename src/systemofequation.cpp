@@ -1,4 +1,5 @@
 #include <iostream>
+#include <omp.h>
 #include "systemofequation.h"
 
 void SystemOfEquation::setNumberOfCells(size_t cells )
@@ -66,6 +67,7 @@ void Couette2::prepareVectorSizes()
 void Couette2::prepareSolving(vector<macroParam> & points)
 {
 
+    #pragma omp parallel for schedule(static)
     for(auto i  = 0; i < numberOfCells; i++)
     {
         U[0][i] = points[i].density;
@@ -137,6 +139,7 @@ double Couette2::getTemp(size_t i)
 
 void Couette2::updateU(double dh, double dt)
 {
+    #pragma omp parallel for schedule(static)
     for(auto i  = 1; i < numberOfCells-1; i++)
     {
         for (int j = 0; j < systemOrder; j++)
@@ -223,7 +226,8 @@ void Couette2::updateBorderU(vector<macroParam> &points)
 void Couette2::computeF(vector<macroParam> &points, double dh)
 {
     Mixture mixture = points[0].mixture;
-    for(size_t i = 0 ; i < numberOfCells; i++)
+    #pragma omp parallel for schedule(static)
+    for(int i = 0 ; i < numberOfCells; i++)
     {
         macroParam p0, p1, p2;
         double denominator = 1;

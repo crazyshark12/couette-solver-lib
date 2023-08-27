@@ -4,12 +4,15 @@
 #include "observer.h"
 #include <filesystem>
 
+
+//#define Liia
 namespace fs = std::filesystem;
 int main()
 {
     MixtureComponent argon;
     argon.name = "Ar";
-    argon.density = 0.800773;
+    argon.density = 1.7839; // case 1
+    //argon.density = 0.800773;
     argon.molarMass = 0.039948;
     argon.mass = 6.633521356992E-26;
     argon.epsilonDevK = 1.8845852298E-21/kB; //! Mistake
@@ -25,7 +28,7 @@ int main()
     startParam.velocity_tau = 0;
 
     solverParams solParam;
-    solParam.NumCell     = 502;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 202;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 0.9;    // Число Куранта
     solParam.MaxIter     = 10000000; // максимальное кол-во итареций
@@ -38,8 +41,13 @@ int main()
     // это меняешь под себя. Он так создаст папку data
     // если не использовать setWriter, то записи не будет, но папка создастся, ибо она в конструкторе зашита
     // он автоматически очищает папку перед новым рассчётом
+#ifdef Liia
     DataWriter writer("D:/main/work_materials/CdExamples/couette-mark/couette-solver-lib");
     DataReader reader("D:/main/work_materials/CdExamples/couette-mark/couette-solver-lib/prev_data");
+#else
+    DataWriter writer("D:/couette/couette");
+    DataReader reader("D:/couette/couette/prev_data");
+#endif
     reader.read();
     vector<macroParam> startParameters;
     reader.getPoints(startParameters);

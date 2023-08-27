@@ -20,7 +20,8 @@ bool Observer::checkDifference(vector<macroParam> param)
 {
     double maxDifference = 0;
     auto size = param.size();
-    for(size_t i = 0; i < size; i++)
+    #pragma omp parallel for schedule (static)
+    for(int i = 0; i < size; i++)
     {
         double d_temp = std::fabs(previousParam[i].temp - param[i].temp);
         double d_rho = std::fabs(previousParam[i].density - param[i].density);
@@ -39,8 +40,13 @@ bool Observer::checkDifference(vector<macroParam> param)
                 d_fractionArray = d_fa;
         }
         double localMaxDifference = std::max({d_temp,d_rho,d_pressure, d_velocity,d_densityArray,d_fractionArray});
-        if(maxDifference < localMaxDifference)
-            maxDifference = localMaxDifference;
+        #pragma omp critical
+        {
+            if(maxDifference < localMaxDifference)
+            {
+                maxDifference = localMaxDifference;
+            }
+        }
     }
     if(maxDifference > precision)
         return true;
