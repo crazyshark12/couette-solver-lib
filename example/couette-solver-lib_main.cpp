@@ -56,10 +56,10 @@ int main()
     double velocity = 300;
     double h = 1;
     GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2, RiemannSolverType::HLLESolver);
-    writer.setDelta_h(h / (solParam.NumCell));
+    writer.setDelta_h(h / (solParam.NumCell - 2));
     solver.setWriter(&writer);
     solver.setObserver(&watcher);
-    solver.setDelta_h(h / (solParam.NumCell));
+    solver.setDelta_h(h / (solParam.NumCell - 2));
     solver.setBorderConditions(velocity,T2wall,T1wall);
     solver.solve();
 }

@@ -79,8 +79,6 @@ void GodunovSolverSoda::updatePoints()
     auto size = points.size();
     for(size_t i = 0; i < size; i++)
     {
-        if(i==49)
-            double x = 0;
         points[i].velocity_tau = system->getVelocityTau(i);
         points[i].velocity_normal = system->getVelocityNormal(i);
         points[i].velocity = system->getVelocity(i);

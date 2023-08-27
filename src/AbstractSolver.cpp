@@ -212,7 +212,7 @@ void AbstractSolver::setDt()
 void AbstractSolver::updatePoints()
 {
     auto size = points.size()-1;
-    //#pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(static)
     for(int i = 1; i < size; i++)
     {
         points[i].velocity_tau = system->getVelocityTau(i);

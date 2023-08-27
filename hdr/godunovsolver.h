@@ -30,9 +30,5 @@ protected:
     // обновляет вектор U
     void updateU();
 
-
-    double shareViscositySimple(double currentT);
-
-
     vector<macroParam>rezultAfterPStart;
 };

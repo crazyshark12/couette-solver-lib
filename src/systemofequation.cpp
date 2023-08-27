@@ -230,7 +230,7 @@ void Couette2::computeF(vector<macroParam> &points, double dh)
     for(int i = 0 ; i < numberOfCells; i++)
     {
         macroParam p0, p1, p2;
-        double denominator = 1;
+        double denominator = 1.;
         if(i!=0 && i != numberOfCells-1)
         {
             p0 = points[i - 1];
