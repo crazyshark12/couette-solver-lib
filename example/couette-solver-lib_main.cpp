@@ -5,14 +5,14 @@
 #include <filesystem>
 
 
-//#define Liia
+#define Liia
 namespace fs = std::filesystem;
 int main()
 {
     MixtureComponent argon;
     argon.name = "Ar";
-    argon.density = 1.7839; // case 1
-    //argon.density = 0.800773;
+    argon.density = 1.7839e-3; // case 1
+//    argon.density = 0.800773;
     argon.molarMass = 0.039948;
     argon.mass = 6.633521356992E-26;
     argon.epsilonDevK = 1.8845852298E-21/kB; //! Mistake
@@ -24,17 +24,17 @@ int main()
     //startParam.pressure = 218563.81; //218563.81
     startParam.densityArray[0] = argon.density;
     startParam.density = argon.density;
-    startParam.temp = 900; //140
-    startParam.velocity_tau = 0;
+    startParam.temp = 293.15; //140
+    startParam.velocity_tau = 0.00001;
 
     solverParams solParam;
     solParam.NumCell     = 202;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 0.9;    // Число Куранта
-    solParam.MaxIter     = 10000000; // максимальное кол-во итареций
+    solParam.MaxIter     = 1000000; // максимальное кол-во итареций
     solParam.Ma       = 0.1;    // Число маха
 
-    double precision = 0.0025; // точность
+    double precision = 1E-5; // точность
     Observer watcher(precision);
     watcher.setPeriodicity(10000);
 

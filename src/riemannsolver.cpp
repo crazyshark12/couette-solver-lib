@@ -160,9 +160,9 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
     #pragma omp parallel for schedule(static)
     for (int i = 0; i < system->numberOfCells - 1; i++)
     {
-        double u0, u1, v0, v1, a0, a1, rho0, rho1, p0, p1, E0, E1, H0, H1, avg_H, S0, S1, S_star, pvrs, p_star, q, vLeft, vRight;
+        double u0, u1, v0, v1, a0, a1, rho0, rho1, p0, p1, E0, E1, H0, H1, avg_H, S0, S1, S_star, pvrs, p_star, vLeft, vRight;
         vector<double> U_star_0(system->systemOrder), U_star_1(system->systemOrder);
-        double avg_a, avg_u, avg_v, avg_rho, avg_p, avg_q, avg_c;
+        double avg_a, avg_u, avg_v, avg_rho, avg_p, avg_vel, avg_c;
 
         // тут u - нормальная составляющая, v - касательная
         u0 = system->getVelocityNormal(i);
@@ -174,11 +174,11 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
         vLeft = sqrt(pow(u0,2) + pow(v0,2));
         vRight = sqrt(pow(u1,2) + pow(v1,2));
 
-        rho0 = sqrt(system->getDensity(i));
-        rho1 = sqrt(system->getDensity(i + 1));
+        rho0 = system->getDensity(i);
+        rho1 = system->getDensity(i + 1);
 //        avg_rho = (system->getDensity(i) + system->getDensity(i + 1)) / 2.;
 
-        avg_u = (rho0 * u0 + rho1 * u1) / (rho0 + rho1);
+        avg_u = (sqrt(rho0) * u0 + sqrt(rho1) * u1) / (sqrt(rho0) + sqrt(rho1));
         //        H0 = (3*points[i].pressure)/(2*U1[0][i]);
         //        H1 = (3*points[i+1].pressure)/(2*U1[0][i+1]);
         E0 = system->getEnergy(i);
@@ -188,27 +188,40 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
         p1 = system->getPressure(i + 1);
 //        avg_p = (p0 + p1) / 2.;
 
-        H0 = (E0 - pow(vLeft,2) + p0) / system->getDensity(i); //! Mistake, enthalpy is calculated on the basis of internal energy
-        H1 = (E1 - pow(vRight,2) + p1) / system->getDensity(i + 1);
-//        avg_H = (rho0 * H0 + rho1 * H1) / (rho0 + rho1);
-//        avg_a = sqrt((gamma - 1.) * (avg_H - 0.5 * pow(avg_u, 2)));
+        H0 = E0 - pow(vLeft,2) + p0 / rho0;
+        H1 = E1 - pow(vRight,2) + p1 / rho1;
+        avg_H = (sqrt(rho0) * H0 + sqrt(rho1) * H1) / (sqrt(rho0) + sqrt(rho1));
+//        avg_vel = (sqrt(rho0) * vLeft + sqrt(rho1) * vRight) / (sqrt(rho0) + sqrt(rho1));
 
-        double R_rho = rho1 / rho0;
-        avg_u = (u0 + u1 * R_rho) / (1 + R_rho);
-        avg_v = (v0 + v1 * R_rho) / (1 + R_rho);
-        avg_H = (H0 + H1 * R_rho) / (1 + R_rho);
-        avg_c = sqrt((gamma - 1.) * (avg_H - 0.5 * pow(avg_u, 2)));
-        avg_q = avg_u;
+//        avg_c = sqrt((gamma - 1.) * (avg_H - 0.5 * pow(avg_u, 2)));
+//        avg_q = avg_u;
 
         a0 = sqrt((gamma - 1.) * (H0 - 0.5 * pow(u0, 2)));
         a1 = sqrt((gamma - 1.) * (H1 - 0.5 * pow(u1, 2)));
-        double q0 = u0;
-        double q1 = u1;
+        avg_a = sqrt((gamma - 1.) * (avg_H - 0.5 * pow(avg_u, 2)));
 
 //        Davis relations:
 
-        S0 = min(q0 - a0, q1 - a1);
-        S1 = max(q0 + a0, q1 + a1);
+//        S0 = min(vLeft - a0, vRight - a1);
+//        S1 = max(vLeft + a0, vRight + a1);
+
+//        Roe relations:
+
+        S0 = avg_u - avg_a;
+        S1 = avg_u + avg_a;
+
+//        S0 = -dh/dt;
+//        S1 = dh/dt;
+
+//        Einfeldt relations:
+
+//        double eta, d;
+
+//        eta = 0.5 * sqrt(rho0 * rho1) / pow(sqrt(rho0) + sqrt(rho1), 2);
+//        d = sqrt((sqrt(rho0) * pow(a0, 2) + sqrt(rho1) * pow(a1, 2)) / (sqrt(rho0) + sqrt(rho1)) + eta * pow(u1 - u0, 2));
+
+//        S0 = avg_u - d;
+//        S1 = avg_u + d;
 
         toMaxVelocity(max(fabs(S0),fabs(S1)));
         //S0 = (avg_u - avg_a);
@@ -222,10 +235,12 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
         S_star = (p1 - p0 + pow(rho0, 2) * u0 * (S0 - u0) - pow(rho1, 2) * u1 * (S1 - u1))
             / (pow(rho0, 2) * (S0 - u0) - pow(rho1, 2) * (S1 - u1));
 
+
         //        S_star = (pow(rho1,2)*S0*(v1 - S1) - pow(rho0,2)*S1*(v0 - S0)) / (pow(rho1,2)*(v1 - S1) - pow(rho0,2)*(v0 - S0));
 
-        double coeff_0 = system->getDensity(i) * ((S0 - u0) / (S0 - S_star));
-        double coeff_1 = system->getDensity(i + 1) * ((S1 - u1) / (S1 - S_star));
+        double coeff_0 = rho0 * ((S0 - u0) / (S0 - S_star));
+        double coeff_1 = rho1 * ((S1 - u1) / (S1 - S_star));
+
         for (size_t j = 0; j < system->numberOfComponents; j++)
         {
             U_star_0[j] = coeff_0;
@@ -237,8 +252,9 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
         U_star_0[system->v_normal] = coeff_0 * S_star;
         U_star_1[system->v_normal] = coeff_1 * S_star;
 
-        U_star_0[system->energy] = coeff_0 * (E0 / system->getDensity(i) + (S_star - u0) * (S_star + p0 / (system->getDensity(i) * (S0 - u0))));
-        U_star_1[system->energy] = coeff_1 * (E1 / system->getDensity(i + 1) + (S_star - u1) * (S_star + p1 / (system->getDensity(i + 1) * (S1 - u1))));
+        U_star_0[system->energy] = coeff_0 * (E0  + (S_star - u0) * (S_star + p0 / (rho0 * (S0 - u0))));
+        U_star_1[system->energy] = coeff_1 * (E1  + (S_star - u1) * (S_star + p1 / (rho1 * (S1 - u1))));
+
 
         if (S0 >= 0)
         {
@@ -258,14 +274,14 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
         {
             for (size_t j = 0; j < system->systemOrder; j++)
             {
-                system->Flux[j][i] = system->F[j][i] + S0 * (U_star_0[j] - system->U[j][i]);
+                system->Flux[j][i] = system->F[j][i] + S_star * (U_star_0[j] - system->U[j][i]);
             }
         }
         else if (S_star <= 0 && S1 >= 0)
         {
             for (size_t j = 0; j < system->systemOrder; j++)
             {
-                system->Flux[j][i] = system->F[j][i + 1] + S1 * (U_star_1[j] - system->U[j][i + 1]);
+                system->Flux[j][i] = system->F[j][i + 1] + S_star * (U_star_1[j] - system->U[j][i + 1]);
             }
         }
     }
