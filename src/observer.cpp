@@ -16,6 +16,16 @@ void Observer::remember(vector<macroParam> param)
     previousParam = param;
 }
 
+bool pressureCheck(vector<macroParam> param)
+{
+    auto size = param.size();
+    for(int i = 0; i < size - 1; i++)
+    {
+        if(fabs(param[i].pressure - param[i+1].pressure) > 0.00001)
+            return false;
+    }
+    return true;
+}
 bool Observer::checkDifference(vector<macroParam> param)
 {
     double maxDifference = 0;
@@ -48,6 +58,8 @@ bool Observer::checkDifference(vector<macroParam> param)
             }
         }
     }
+    if(pressureCheck(param))
+        return false;
     if(maxDifference > precision)
         return true;
     else

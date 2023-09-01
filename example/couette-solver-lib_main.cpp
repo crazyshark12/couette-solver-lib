@@ -34,7 +34,7 @@ int main()
     solParam.MaxIter     = 1000000; // максимальное кол-во итареций
     solParam.Ma       = 0.1;    // Число маха
 
-    double precision = 1E-5; // точность
+    double precision = 1E-4; // точность
     Observer watcher(precision);
     watcher.setPeriodicity(10000);
 
@@ -55,7 +55,7 @@ int main()
     double T2wall = 1000;
     double velocity = 300;
     double h = 1;
-    GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2, RiemannSolverType::HLLESolver);
+    GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2, RiemannSolverType::HLLCSolver);
     writer.setDelta_h(h / (solParam.NumCell - 2));
     solver.setWriter(&writer);
     solver.setObserver(&watcher);
