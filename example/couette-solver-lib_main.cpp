@@ -28,13 +28,13 @@ int main()
     startParam.velocity_tau = 0.00001;
 
     solverParams solParam;
-    solParam.NumCell     = 202;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 1002;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 0.9;    // Число Куранта
-    solParam.MaxIter     = 1000000; // максимальное кол-во итареций
+    solParam.MaxIter     = 10000000; // максимальное кол-во итареций
     solParam.Ma       = 0.1;    // Число маха
 
-    double precision = 1E-4; // точность
+    double precision = 1E-5; // точность
     Observer watcher(precision);
     watcher.setPeriodicity(10000);
 
@@ -55,7 +55,7 @@ int main()
     double T2wall = 1000;
     double velocity = 300;
     double h = 1;
-    GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2, RiemannSolverType::HLLCSolver);
+    GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2, RiemannSolverType::HLLESolver);
     writer.setDelta_h(h / (solParam.NumCell - 2));
     solver.setWriter(&writer);
     solver.setObserver(&watcher);

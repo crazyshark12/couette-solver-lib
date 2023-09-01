@@ -21,7 +21,7 @@ bool pressureCheck(vector<macroParam> param)
     auto size = param.size();
     for(int i = 0; i < size - 1; i++)
     {
-        if(fabs(param[i].pressure - param[i+1].pressure) > 0.00001)
+        if(fabs(param[i].pressure - param[i+1].pressure) > 0.000001)
             return false;
     }
     return true;
