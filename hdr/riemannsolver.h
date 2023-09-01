@@ -24,6 +24,7 @@ struct HLLCSolver : public RiemannSolver
 {
     HLLCSolver(){};
     void computeFlux(SystemOfEquation *system);
+    void computeFlux(SystemOfEquation *system, double dt, double dh);
 };
 
 

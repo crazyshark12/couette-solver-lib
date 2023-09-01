@@ -9,6 +9,11 @@ AbstractSolver::AbstractSolver(Mixture mixture_, macroParam startParam_, solverP
     startParam=startParam_;
     solParam =solParam_;
     delta_h = 0;
+    if(type == SystemOfEquationType::couette1)
+    {
+        auto *tmp = new Couette1();
+        system = tmp;
+    }
     if(type == SystemOfEquationType::couette2)
     {
         auto *tmp = new Couette2();
@@ -19,6 +24,7 @@ AbstractSolver::AbstractSolver(Mixture mixture_, macroParam startParam_, solverP
         auto *tmp = new Soda();
         system = tmp;
     }
+
     switch(riemannType)
     {
     case RiemannSolverType::HLLCSolver:

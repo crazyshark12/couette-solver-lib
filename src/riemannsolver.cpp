@@ -287,7 +287,139 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
     }
     return;
 }
+void HLLCSolver::computeFlux(SystemOfEquation* system, double dt, double dh)
+{
+    toMaxVelocity(-1); // для обнуления максимальной сигнальной скорости
+    #pragma omp parallel for schedule(static)
+    for (int i = 0; i < system->numberOfCells - 1; i++)
+    {
+        double H0, H1, c0, c1, u0, u1, v0,v1,V0,V1, rho0, rho1,p0,p1,E0,E1, u_avg,v_avg, H_avg, c_avg, b0, b1, S0, S1,S_star;
+        vector<double> U_star_0(system->systemOrder), U_star_1(system->systemOrder);
 
+
+        u0 = system->getVelocityNormal(i);
+        u1 = system->getVelocityNormal(i+1);
+
+        v0 = system->getVelocityTau(i);
+        v1 = system->getVelocityTau(i+1);
+
+        V0 = sqrt(pow(u0,2) + pow(v0,2));
+        V1 = sqrt(pow(u1,2) + pow(v1,2));
+
+        E0 = system->getEnergy(i);
+        E1 = system->getEnergy(i + 1);
+
+        p0 = system->getPressure(i);
+        p1 = system->getPressure(i + 1);
+
+//        H0 = (system->getPressure(i))/(system->getDensity(i)) + pow(V0,2)/2;
+//        H1 = (system->getPressure(i+1))/(system->getDensity(i+1))+ pow(V1,2)/2;
+        H0 = system->getEnergy(i) - pow(V0,2) + system->getPressure(i)/system->getDensity(i); //! Mistake (the same for enthalpy)
+        H1 = system->getEnergy(i+1) - pow(V1,2) + system->getPressure(i+1)/system->getDensity(i+1);
+
+
+        c0 = sqrt((gamma - 1.)*(H0 - 0.5 * pow(V0,2)));
+        c1 = sqrt((gamma - 1.)*(H1 - 0.5 * pow(V1,2)));
+
+        rho0 = sqrt(system->getDensity(i));
+        rho1 = sqrt(system->getDensity(i+1));
+
+        u_avg = (rho0 * u0 + rho1 * u1) / (rho0 + rho1);
+        v_avg = (rho0 * v0 + rho1 * v1) / (rho0 + rho1);
+
+        H_avg = (rho0 * H0 + rho1 * H1) / (rho0 + rho1);
+        c_avg = sqrt((gamma)*(H_avg - 0.5 * (pow(u_avg,2) + pow(v_avg,2))));
+
+        S0 = (std::min)({v_avg - c_avg, v0 - c0});
+        S1 = (std::max)({v_avg + c_avg, v1 + c1});
+
+//        Davis relations:
+
+//        S0 = min(vLeft - a0, vRight - a1);
+//        S1 = max(vLeft + a0, vRight + a1);
+
+//        Roe relations:
+
+        //S0 = v_avg - c_avg;
+        //S1 = v_avg + c_avg;
+
+//        S0 = -dh/dt;
+//        S1 = dh/dt;
+
+//        Einfeldt relations:
+
+//        double eta, d;
+
+//        eta = 0.5 * sqrt(rho0 * rho1) / pow(sqrt(rho0) + sqrt(rho1), 2);
+//        d = sqrt((sqrt(rho0) * pow(a0, 2) + sqrt(rho1) * pow(a1, 2)) / (sqrt(rho0) + sqrt(rho1)) + eta * pow(u1 - u0, 2));
+
+//        S0 = avg_u - d;
+//        S1 = avg_u + d;
+
+        toMaxVelocity(max(fabs(S0),fabs(S1)));
+        //S0 = (avg_u - avg_a);
+        //S1 = (avg_u + avg_a);
+
+        //        S0 = (v0 - system->getSoundSpeed(i));
+        //        S1 = (v1 + system->getSoundSpeed(i+1));
+
+        //        S0 = min(v0, v1);
+        //        S1 = max(v0, v1);
+        S_star = (p1 - p0 + pow(rho0,2) * v0 * (S0 - v0) - pow(rho1,2) * v1 * (S1 - v1))
+            / (pow(rho0,2) * (S0 - v0) - pow(rho1,2) * (S1 - v1));
+
+
+        //        S_star = (pow(rho1,2)*S0*(v1 - S1) - pow(rho0,2)*S1*(v0 - S0)) / (pow(rho1,2)*(v1 - S1) - pow(rho0,2)*(v0 - S0));
+
+        double coeff_0 = pow(rho0,2) * ((S0 - v0) / (S0 - S_star));
+        double coeff_1 = pow(rho1,2) * ((S1 - v1) / (S1 - S_star));
+
+        for (size_t j = 0; j < system->numberOfComponents; j++)
+        {
+            U_star_0[j] = coeff_0;
+            U_star_1[j] = coeff_1;
+        }
+        U_star_0[system->v_tau] = coeff_0 * v0;
+        U_star_1[system->v_tau] = coeff_1 * v1;
+
+        U_star_0[system->v_normal] = coeff_0 * S_star;
+        U_star_1[system->v_normal] = coeff_1 * S_star;
+
+        U_star_0[system->energy] = coeff_0 * (E0  + (S_star - v0) * (S_star + p0 / (pow(rho0,2) * (S0 - v0))));
+        U_star_1[system->energy] = coeff_1 * (E1  + (S_star - v1) * (S_star + p1 / (pow(rho1,2) * (S1 - v1))));
+
+
+        if (S0 >= 0)
+        {
+            for (size_t j = 0; j < system->systemOrder; j++)
+            {
+                system->Flux[j][i] = system->F[j][i];
+            }
+        }
+        else if (S1 <= 0)
+        {
+            for (size_t j = 0; j < system->systemOrder; j++)
+            {
+                system->Flux[j][i] = system->F[j][i + 1];
+            }
+        }
+        else if (S0 <= 0 && S_star >= 0)
+        {
+            for (size_t j = 0; j < system->systemOrder; j++)
+            {
+                system->Flux[j][i] = system->F[j][i] + S_star * (U_star_0[j] - system->U[j][i]);
+            }
+        }
+        else if (S_star <= 0 && S1 >= 0)
+        {
+            for (size_t j = 0; j < system->systemOrder; j++)
+            {
+                system->Flux[j][i] = system->F[j][i + 1] + S_star * (U_star_1[j] - system->U[j][i + 1]);
+            }
+        }
+    }
+    return;
+}
 void HLLESolver::computeFlux(SystemOfEquation *system)
 {
     toMaxVelocity(-1); // для обнуления максимальной сигнальной скорости

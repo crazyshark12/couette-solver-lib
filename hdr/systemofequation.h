@@ -4,6 +4,7 @@
 #include "bordercondition.h"
 enum SystemOfEquationType
 {
+    couette1,
     couette2,
     soda
 };
@@ -28,7 +29,7 @@ struct SystemOfEquation
     double getMaxVelocity();
 
     virtual void prepareIndex() = 0;
-    virtual void prepareVectorSizes() = 0;
+    virtual void prepareVectorSizes();
     virtual void prepareSolving(vector<macroParam> & points) = 0;
 
     virtual void updateU(double dh, double dt) = 0;
@@ -57,7 +58,6 @@ struct SystemOfEquation
 struct Couette2 : public SystemOfEquation
 {
     Couette2(){};
-    void prepareVectorSizes();
     void prepareSolving(vector<macroParam> & points);
     void prepareIndex();
 
@@ -77,11 +77,31 @@ struct Couette2 : public SystemOfEquation
 
 };
 
+struct Couette1 : public SystemOfEquation
+{
+    Couette1(){};
+    void prepareSolving(vector<macroParam> & points);
+    void prepareIndex();
+
+    double getPressure(size_t i);
+    double getDensity(size_t i);
+    double getVelocity(size_t i);
+    double getVelocityTau(size_t i);
+    double getVelocityNormal(size_t i);
+    double getSoundSpeed(size_t i);
+    double getEnergy(size_t i);
+    double getTemp(size_t i);
+
+    double getMaxVelocity();
+    void updateU(double dh, double dt);
+    void updateBorderU(vector<macroParam> & points);
+    void computeF(vector<macroParam> & points, double dh);
+
+};
 
 struct Soda : public SystemOfEquation
 {
     Soda(){};
-    void prepareVectorSizes();
     void prepareSolving(vector<macroParam> & points);
     void prepareIndex();
 
