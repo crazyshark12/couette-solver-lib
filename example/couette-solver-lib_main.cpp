@@ -28,7 +28,7 @@ int main()
     startParam.velocity_tau = 0.00001;
 
     solverParams solParam;
-    solParam.NumCell     = 1002;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 202;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 0.9;    // Число Куранта
     solParam.MaxIter     = 10000000; // максимальное кол-во итареций
