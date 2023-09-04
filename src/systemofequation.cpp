@@ -550,7 +550,7 @@ void Couette1::updateBorderU(vector<macroParam> &points)
 void Couette1::computeF(vector<macroParam> &points, double dh)
 {
     Mixture mixture = points[0].mixture;
-    #pragma omp parallel for schedule(static)
+    //#pragma omp parallel for schedule(static)
     for(int i = 0 ; i < numberOfCells; i++)
     {
         macroParam p0, p1, p2;
@@ -609,7 +609,7 @@ void Couette1::computeF(vector<macroParam> &points, double dh)
                 F[j][i] = 0;
         }
         F[v_tau][i] = - etta * dv_tau_dy;
-        F[v_normal][i] = 0;
+        F[v_normal][i] = p1.pressure;
         F[energy][i] = 0;
         for(size_t j = 0 ; j <numberOfComponents; j++)
         {
