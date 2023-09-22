@@ -210,7 +210,7 @@ void AbstractSolver::setDt()
     if(max!=0)
         dt = solParam.CFL*delta_h/max;
     else
-        dt = 0.0000001;
+        dt = 0.00001;
     timeSolvind.push_back(dt);
     return;
 }

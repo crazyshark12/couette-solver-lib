@@ -492,6 +492,7 @@ void HLLSimple::computeFlux(SystemOfEquation *system, double dt, double dh)
 
 void HLLIsentropic::computeFlux(SystemOfEquation *system)
 {
+
     for(size_t i = 0 ; i < system->numberOfCells - 1; i++)
     {
         double u_star, a_star,ul,ur,al,ar,SR, SL, FL, FR, UL, UR;
@@ -521,7 +522,8 @@ void HLLIsentropic::computeFlux(SystemOfEquation *system)
 
 void ExacRiemanSolver::computeFlux(SystemOfEquation *system, double dh)
 {
-    for(size_t i = 0 ; i < system->numberOfCells - 1; i++)
+    #pragma omp parallel for schedule(static)
+    for(int i = 0 ; i < system->numberOfCells - 1; i++)
     {
         macroParam left,right,point;
         left.density = system->getDensity(i);
@@ -565,7 +567,8 @@ void ExacRiemanSolver::computeFlux(SystemOfEquation *system, double dh)
                 system->Flux[j][i] = 0;
         }
         system->Flux[system->v_tau][i] = -etta * dv_dy;
-        system->Flux[system->v_normal][i] = point.pressure;
+        system->Flux[system->v_normal][i] = 0;
+        system->Flux[system->energy][i] = 0;
         for(size_t j = 0 ; j < system->mixture.NumberOfComponents; j++)
         {
             system->Flux[system->energy][i]+= - point.density * system->mixture.getEffDiff(j)*dy_dy[j] * system->mixture.getEntalp(i);

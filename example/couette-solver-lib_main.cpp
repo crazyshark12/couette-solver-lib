@@ -12,7 +12,7 @@ int main()
     MixtureComponent argon;
     argon.name = "Ar";
     argon.density = 1.7839e-3; // case 1
-//    argon.density = 0.800773;
+    //argon.density = 0.800773;
     argon.molarMass = 0.039948;
     argon.mass = 6.633521356992E-26;
     argon.epsilonDevK = 1.8845852298E-21/kB; //! Mistake
@@ -24,11 +24,11 @@ int main()
     //startParam.pressure = 218563.81; //218563.81
     startParam.densityArray[0] = argon.density;
     startParam.density = argon.density;
-    startParam.temp = 293.15; //140
+    startParam.temp = 900; //140
     startParam.velocity_tau = 0.00001;
 
     solverParams solParam;
-    solParam.NumCell     = 202;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
+    solParam.NumCell     = 302;    // Число расчтеных ячеек с учетом двух фиктивных ячеек
     solParam.Gamma    = 1.67;    // Показатель адиабаты
     solParam.CFL      = 0.9;    // Число Куранта
     solParam.MaxIter     = 10000000; // максимальное кол-во итареций
@@ -45,8 +45,8 @@ int main()
     DataWriter writer("D:/main/work_materials/CdExamples/couette-mark/couette-solver-lib");
     DataReader reader("D:/main/work_materials/CdExamples/couette-mark/couette-solver-lib/prev_data");
 #else
-    DataWriter writer("D:/couette/couette");
-    DataReader reader("D:/couette/couette/prev_data");
+    DataWriter writer("D:/Work/couette/couette-git");
+    DataReader reader("D:/Work/couette/couette-git/prev_data");
 #endif
     reader.read();
     vector<macroParam> startParameters;
@@ -55,7 +55,7 @@ int main()
     double T2wall = 1000;
     double velocity = 300;
     double h = 1;
-    GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2, RiemannSolverType::HLLESolver);
+    GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette1, RiemannSolverType::HLLESolver);
     writer.setDelta_h(h / (solParam.NumCell - 2));
     solver.setWriter(&writer);
     solver.setObserver(&watcher);
