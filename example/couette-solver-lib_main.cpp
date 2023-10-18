@@ -51,11 +51,11 @@ int main()
     reader.read();
     vector<macroParam> startParameters;
     reader.getPoints(startParameters);
-    double T1wall = 900;
-    double T2wall = 900;
+    double T1wall = 1000;
+    double T2wall = 1000;
     double velocity = 300;
     double h = 1;
-    GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2Alt, RiemannSolverType::HLLCSolver);
+    GodunovSolver solver(mixture,startParam,solParam, SystemOfEquationType::couette2Alt, RiemannSolverType::HLLESolver);
     writer.setDelta_h(h / (solParam.NumCell - 2));
     solver.setWriter(&writer);
     solver.setObserver(&watcher);

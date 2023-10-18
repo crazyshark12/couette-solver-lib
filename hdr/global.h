@@ -60,7 +60,7 @@ struct macroParam
 struct Grid
 {
     vector<macroParam> cell;
-}
+};
 struct solverParams
 {
     int NumCell     = 0;    // Число расчтеных ячеек
