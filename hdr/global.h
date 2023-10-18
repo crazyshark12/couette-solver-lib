@@ -56,6 +56,11 @@ struct macroParam
     double soundSpeed   = 0;
     string gas         ="Ar";
 };
+
+struct Grid
+{
+    vector<macroParam> cell;
+}
 struct solverParams
 {
     int NumCell     = 0;    // Число расчтеных ячеек

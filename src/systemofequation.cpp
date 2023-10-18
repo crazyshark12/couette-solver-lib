@@ -615,7 +615,164 @@ void Couette1::computeF(vector<macroParam> &points, double dh)
         {
             F[energy][i]+= -p1.density * mixture.getEffDiff(j)*dy_dy[j] * (solParam.Gamma * kB * p1.temp /p1.mixture.components[j].mass)/*mixture.getEntalp(i)*/;
         }
-        F[energy][i] += -lambda*dT_dy - etta* p1.velocity_tau*dv_tau_dy;
+        F[energy][i] += /*-lambda*dT_dy*/ - etta* p1.velocity_tau*dv_tau_dy;
     }
 }
 
+
+void Couette2Alt::prepareVectorSizes()
+{
+    SystemOfEquation::prepareVectorSizes();
+
+    Fv.resize(systemOrder);
+    for(size_t i = 0 ; i <  Fv.size(); i++)
+        Fv[i].resize(numberOfCells);
+}
+
+void Couette2Alt::updateU(double dh, double dt)
+{
+    #pragma omp parallel for schedule(static)
+    for(auto i  = 1; i < numberOfCells-1; i++)
+    {
+        for (int j = 0; j < systemOrder; j++)
+        {
+            U[j][i] += (/*R[j][i]*/0 - (Flux[j][i] - Flux[j][i - 1]) / dh - (Fv[j][i+1] - Fv[j][i - 1])/(2.*dh)) * dt;
+        }
+    }
+}
+
+void Couette2Alt::computeF(vector<macroParam> &points, double dh)
+{
+    Mixture mixture = points[0].mixture;
+    #pragma omp parallel for schedule(static)
+    for(int i = 0 ; i < numberOfCells; i++)
+    {
+        macroParam p0, p1, p2;
+        double denominator = 1.;
+        if(i!=0 && i != numberOfCells-1)
+        {
+            p0 = points[i - 1];
+            p1 = points[i];
+            p2 = points[i + 1];
+            denominator = 2. * dh;
+        }
+        else if (i == 0)
+        {
+            p0 = points[i];
+            p1 = points[i];
+            p2 = points[i + 1];
+            denominator = dh;
+        }
+        else if (i == (numberOfCells - 1))
+        {
+            p0 = points[i-1];
+            p1 = points[i];
+            p2 = points[i];
+            denominator = dh;
+        }
+        // Рассчитываем производные в точке i
+
+
+        vector<double> dy_dy(numberOfComponents);
+
+        //учёт граничных условий
+        if(i == 0 || i == numberOfCells-1)
+            fill(dy_dy.begin(), dy_dy.end(),border->get_dyc_dy());
+        else
+        {
+            for(size_t j = 0 ; j <numberOfComponents; j++)
+            {
+                dy_dy[j] = (p2.fractionArray[j] - p0.fractionArray[j])/ denominator;
+            }
+        }
+
+        double dT_dy;
+        dT_dy = (p2.temp - p0.temp) / denominator;
+        double lambda = coeffSolver->lambda(p1);
+
+        for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
+        {
+            if(j!=0)
+                F[j][i] = 0;
+            else
+                F[j][i] = p1.density * p1.velocity_normal;
+        }
+        F[v_tau][i] = p1.density * p1.velocity_tau * p1.velocity_normal;
+        F[v_normal][i] = p1.density *pow(p1.velocity_normal,2) + p1.pressure;
+        F[energy][i] =  /*-lambda*dT_dy*/ + p1.pressure * p1.velocity_normal + p1.density * getEnergy(i);
+    }
+}
+
+void Couette2Alt::computeFv(vector<macroParam> &points, double dh)
+{
+    Mixture mixture = points[0].mixture;
+    #pragma omp parallel for schedule(static)
+    for(int i = 0 ; i < numberOfCells; i++)
+    {
+        macroParam p0, p1, p2;
+        double denominator = 1.;
+        if(i!=0 && i != numberOfCells-1)
+        {
+            p0 = points[i - 1];
+            p1 = points[i];
+            p2 = points[i + 1];
+            denominator = 2. * dh;
+        }
+        else if (i == 0)
+        {
+            p0 = points[i];
+            p1 = points[i];
+            p2 = points[i + 1];
+            denominator = dh;
+        }
+        else if (i == (numberOfCells - 1))
+        {
+            p0 = points[i-1];
+            p1 = points[i];
+            p2 = points[i];
+            denominator = dh;
+        }
+        // Рассчитываем производные в точке i
+        double dv_tau_dy;
+        double dv_normal_dy;
+        double dT_dy;
+        dT_dy = (p2.temp - p0.temp) / denominator;
+        dv_tau_dy = (p2.velocity_tau - p0.velocity_tau) / denominator;
+        dv_normal_dy = (p2.velocity_normal - p0.velocity_normal) / denominator;
+
+        vector<double> dy_dy(numberOfComponents);
+
+        //учёт граничных условий
+        if(i == 0 || i == numberOfCells-1)
+            fill(dy_dy.begin(), dy_dy.end(),border->get_dyc_dy());
+        else
+        {
+            for(size_t j = 0 ; j <numberOfComponents; j++)
+            {
+                dy_dy[j] = (p2.fractionArray[j] - p0.fractionArray[j])/ denominator;
+            }
+        }
+        // Расчет поточных членов
+        // .....
+        // сейчас так:
+        double lambda = coeffSolver->lambda(p1);
+        double etta = coeffSolver->shareViscositySimple(p1);
+        double bulk = coeffSolver->bulcViscositySimple(mixture, p1.temp, p1.density, p1.pressure);
+
+        for(size_t j = 0 ; j <mixture.NumberOfComponents; j++)
+        {
+            if(j!=0)
+                F[j][i] = -p1.density * mixture.getEffDiff(j) * dy_dy[j];
+            else
+                F[j][i] = 0;
+        }
+        Fv[v_tau][i] = - etta * dv_tau_dy;
+        Fv[v_normal][i] = - (bulk + 4./3.*etta)* dv_normal_dy;
+        Fv[energy][i] = 0;
+        for(size_t j = 0 ; j <numberOfComponents; j++)
+        {
+            Fv[energy][i]+= -p1.density * mixture.getEffDiff(j)*dy_dy[j] * (solParam.Gamma * kB * p1.temp /p1.mixture.components[j].mass)/*mixture.getEntalp(i)*/;
+        }
+        Fv[energy][i] = -lambda*dT_dy - etta* p1.velocity_tau*dv_tau_dy - (bulk + 4./3.*etta)* dv_normal_dy * p1.velocity_normal - p1.density * getEnergy(i);
+    }
+}

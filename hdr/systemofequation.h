@@ -6,6 +6,7 @@ enum SystemOfEquationType
 {
     couette1,
     couette2,
+    couette2Alt,
     soda
 };
 struct SystemOfEquation
@@ -35,6 +36,7 @@ struct SystemOfEquation
     virtual void updateU(double dh, double dt) = 0;
     virtual void updateBorderU(vector<macroParam> & points) = 0;
     virtual void computeF(vector<macroParam> & points, double dh) = 0;
+    virtual void computeFv(vector<macroParam> & points, double dh){};
 
     size_t numberOfCells;
     size_t numberOfComponents;
@@ -51,13 +53,15 @@ struct SystemOfEquation
     CoeffSolver* coeffSolver;
     BorderCondition* border;
     solverParams solParam;
+    SystemOfEquationType systemType;
 
     vector<Matrix> U, R, F, Flux;
 };
 
+
 struct Couette2 : public SystemOfEquation
 {
-    Couette2(){};
+    Couette2(){systemType = SystemOfEquationType::couette2;};
     void prepareSolving(vector<macroParam> & points);
     void prepareIndex();
 
@@ -77,9 +81,22 @@ struct Couette2 : public SystemOfEquation
 
 };
 
+struct Couette2Alt : public Couette2
+{
+    Couette2Alt(){systemType = SystemOfEquationType::couette2Alt;};
+
+    void prepareVectorSizes();
+
+    void updateU(double dh, double dt);
+    void computeF(vector<macroParam> & points, double dh);
+    void computeFv(vector<macroParam> & points, double dh);
+
+    vector<Matrix> Fv;
+};
+
 struct Couette1 : public SystemOfEquation
 {
-    Couette1(){};
+    Couette1(){systemType = SystemOfEquationType::couette1;};
     void prepareSolving(vector<macroParam> & points);
     void prepareIndex();
 
@@ -97,11 +114,12 @@ struct Couette1 : public SystemOfEquation
     void updateBorderU(vector<macroParam> & points);
     void computeF(vector<macroParam> & points, double dh);
 
+
 };
 
 struct Soda : public SystemOfEquation
 {
-    Soda(){};
+    Soda(){systemType = SystemOfEquationType::soda;};
     void prepareSolving(vector<macroParam> & points);
     void prepareIndex();
 

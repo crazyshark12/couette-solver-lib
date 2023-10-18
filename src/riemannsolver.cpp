@@ -224,14 +224,7 @@ void HLLCSolver::computeFlux(SystemOfEquation* system)
 //        S1 = avg_u + d;
 
         toMaxVelocity(max(fabs(S0),fabs(S1)));
-        //S0 = (avg_u - avg_a);
-        //S1 = (avg_u + avg_a);
 
-        //        S0 = (v0 - system->getSoundSpeed(i));
-        //        S1 = (v1 + system->getSoundSpeed(i+1));
-
-        //        S0 = min(v0, v1);
-        //        S1 = max(v0, v1);
         S_star = (p1 - p0 + pow(rho0, 2) * u0 * (S0 - u0) - pow(rho1, 2) * u1 * (S1 - u1))
             / (pow(rho0, 2) * (S0 - u0) - pow(rho1, 2) * (S1 - u1));
 
@@ -366,7 +359,7 @@ void HLLCSolver::computeFlux(SystemOfEquation* system, double dt, double dh)
         //        S0 = min(v0, v1);
         //        S1 = max(v0, v1);
         S_star = (p1 - p0 + pow(rho0,2) * v0 * (S0 - v0) - pow(rho1,2) * v1 * (S1 - v1))
-            / (pow(rho0,2) * (S0 - v0) - pow(rho1,2) * (S1 - v1));
+            / (pow(rho0,2) * (S0 - v0) - pow(rho1,2) * (S1 - v1)) ;
 
 
         //        S_star = (pow(rho1,2)*S0*(v1 - S1) - pow(rho0,2)*S1*(v0 - S0)) / (pow(rho1,2)*(v1 - S1) - pow(rho0,2)*(v0 - S0));
@@ -385,8 +378,8 @@ void HLLCSolver::computeFlux(SystemOfEquation* system, double dt, double dh)
         U_star_0[system->v_normal] = coeff_0 * S_star;
         U_star_1[system->v_normal] = coeff_1 * S_star;
 
-        U_star_0[system->energy] = coeff_0 * (E0  + (S_star - v0) * (S_star + p0 / (pow(rho0,2) * (S0 - v0))));
-        U_star_1[system->energy] = coeff_1 * (E1  + (S_star - v1) * (S_star + p1 / (pow(rho1,2) * (S1 - v1))));
+        U_star_0[system->energy] = coeff_0 * (E0  + (S_star - v0) * (S_star + p0 / (system->getDensity(i) * (S0 - v0))));
+        U_star_1[system->energy] = coeff_1 * (E1  + (S_star - v1) * (S_star + p1 / (system->getDensity(i+1) * (S1 - v1))));
 
 
         if (S0 >= 0)
@@ -403,18 +396,18 @@ void HLLCSolver::computeFlux(SystemOfEquation* system, double dt, double dh)
                 system->Flux[j][i] = system->F[j][i + 1];
             }
         }
-        else if (S0 <= 0 && S_star >= 0)
-        {
-            for (size_t j = 0; j < system->systemOrder; j++)
-            {
-                system->Flux[j][i] = system->F[j][i] + S_star * (U_star_0[j] - system->U[j][i]);
-            }
-        }
         else if (S_star <= 0 && S1 >= 0)
         {
             for (size_t j = 0; j < system->systemOrder; j++)
             {
                 system->Flux[j][i] = system->F[j][i + 1] + S_star * (U_star_1[j] - system->U[j][i + 1]);
+            }
+        }
+        else if (S0 <= 0 && S_star >= 0)
+        {
+            for (size_t j = 0; j < system->systemOrder; j++)
+            {
+                system->Flux[j][i] = system->F[j][i] + S_star * (U_star_0[j] - system->U[j][i]);
             }
         }
     }
